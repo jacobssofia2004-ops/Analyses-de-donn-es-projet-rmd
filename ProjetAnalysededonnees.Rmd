@@ -15,8 +15,61 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+```{r}
+# Vérifie si {reticulate} est installé, sinon l’installe, pour exécuter Python
+if (!requireNamespace("reticulate", quietly = TRUE)) {
+  install.packages("reticulate")
+}
+```
+# Exemple de code python
 
-# Le sang de ces morts
+```{python}
+import random
+import time
+
+# la reproduction d'un python
+def python_reproduction():
+    print("python python python ")
+
+    # Étape 1 : Saison des amours
+    print("\nÉtape 1 : La saison des amours commence !")
+    male_ready = random.choice([True, False])
+    female_ready = random.choice([True, False])
+
+    if male_ready and female_ready:
+        print("Le mâle et la femelle sont prêts à s'accoupler")
+    else:
+        print("L'un des deux n’est pas d’humeur, tant pis Fail")
+        return
+
+    # Étape 2 : Accouplement
+    print("\nÉtape 2 : Accouplement en cours...")
+    time.sleep(2)
+    print("Le mâle et la femelle ont fait leur bail. On attend les œufs maintenant ")
+
+    # Étape 3 : Ponte des œufs
+    egg_count = random.randint(10, 40)  # Les pythons pondent généralement 10 à 40 œufs
+    print(f"\nEtape 3 : La femelle pond {egg_count} œufs ! Elle va les couver.")
+
+    # Étape 4 : Incubation
+    incubation_days = random.randint(50, 80)
+    print(f"\nEtape 4 : Incubation en cours pendant {incubation_days} jours...")
+    for day in range(1, incubation_days + 1, 10):  # Simulation rapide
+        print(f"Jour {day}: La femelle garde les œufs au chaud en s'enroulant autour.")
+        time.sleep(0.5)
+
+    # Étape 5 : Éclosion
+    hatch_rate = random.uniform(0.6, 0.9)  # 60 à 90 % des œufs éclosent en général
+    hatched = int(egg_count * hatch_rate)
+    print(f"\nEtape 5 : {hatched} bébés pythons sortent des œufs.")
+    print(f"{egg_count - hatched} œufs n’ont pas éclos. C’est la loi de la nature. ")
+
+    # Fun fact pour conclure
+    print("\nFun fact : Les bébés pythons sont indépendants dès la naissance.")
+
+# Lancer la simulation
+python_reproduction()
+```
 
 ## Titre 2
 
@@ -101,15 +154,7 @@ a:hover {
 
 
 
-```{recho "# Analyses-de-donn-es-projet-rmd" >> README.md}
 
-git init
-git add README.md
-git commit -m "first commit"
-git branch -M main
-git remote add origin 
-git push -u origin main
-```
 
 
 
