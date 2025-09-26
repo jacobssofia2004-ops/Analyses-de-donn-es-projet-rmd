@@ -1,6 +1,6 @@
 ---
 title: "TP2"
-author: "Jacobs Sofia"
+author: "Jacobs Sofia & Bauer Julie"
 date: "2025-09-25"
 output: 
   rmarkdown::html_document:
