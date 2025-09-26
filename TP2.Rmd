@@ -1,0 +1,106 @@
+---
+title: "TP2"
+author: "Jacobs Sofia"
+date: "2025-09-25"
+output: 
+  rmarkdown::html_document:
+    theme: cosmo
+    number_sections: yes
+    toc: yes
+    toc_float:  
+      collapsed: false
+      smooth_scroll: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Titre 1
+
+## Titre 2
+
+### Titre 3
+
+
+```{css toc-content, echo = FALSE}
+/* === Police générale moderne === */
+body {
+  font-family: "Fira Sans", "Segoe UI", Arial, sans-serif;
+  color: #222; /* texte foncé sur fond clair */
+  background-color: #ffffff; /* fond blanc */
+  line-height: 1.6;
+}
+
+/* === Titres === */
+h1 {
+  font-family: "Orbitron", "Fira Sans", sans-serif;
+  color: #cc9900; /* Jaune Mercure assombri pour rester lisible sur fond blanc */
+  border-bottom: 3px solid #cc9900;
+  padding-bottom: 5px;
+}
+
+h2 {
+  font-family: "Fira Sans", sans-serif;
+  color: #006699; /* Bleu plus sombre */
+  border-left: 4px solid #006699;
+  padding-left: 8px;
+}
+
+h3 {
+  font-family: "Fira Sans", sans-serif;
+  color: #2e7d32; /* Vert plus foncé et lisible */
+}
+
+h4 {
+  font-family: "Fira Sans", sans-serif;
+  color: #e65100; /* Orange profond */
+}
+
+/* === Tableaux === */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 15px 0;
+  border: 1px solid #ccc;
+}
+thead {
+  background-color: #f2f2f2;
+  color: #000;
+}
+tbody tr:nth-child(odd) {
+  background-color: #fafafa;
+}
+tbody tr:hover {
+  background-color: #f0f0f0;
+}
+
+/* === Code blocks === */
+pre, code {
+  font-family: "Fira Code", monospace;
+  border-radius: 6px;
+  padding: 8px;
+  background-color: #f5f5f5; /* gris clair */
+  color: #222;
+  overflow-x: auto;
+}
+
+/* === Liens === */
+a {
+  color: #d63384; /* rose soutenu */
+  text-decoration: none;
+  transition: color 0.3s ease, text-decoration 0.3s ease;
+}
+a:hover {
+  color: #cc9900;
+  text-decoration: underline;
+}
+
+
+```
+
+
+
+
+
+
