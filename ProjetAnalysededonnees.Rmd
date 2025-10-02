@@ -1,6 +1,6 @@
 ---
 title: "TP2"
-author: "Jacobs Sofia"
+author: "Jacobs Sofia & Bauer Julie"
 date: "2025-09-25"
 output: 
   rmarkdown::html_document:
@@ -11,12 +11,6 @@ output:
       collapsed: false
       smooth_scroll: false
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-# Titre 1
 
 ## Titre 2
 
@@ -102,8 +96,10 @@ a:hover {
 
 ```{r}
 
+
 df <- read.csv ("projet-donnees.csv", sep=",")
 ```
+
 
 
 
