@@ -82,7 +82,7 @@ pre, code {
   padding: 8px;
   background-color: #f5f5f5; /* gris clair */
   color: #222;
-  overflow-x: auto;
+  overflow-x: auto; 
 }
 
 /* === Liens === */
@@ -100,16 +100,11 @@ a:hover {
 ```
 
 
+```{r}
 
-```{recho "# Analyses-de-donn-es-projet-rmd" >> README.md}
-
-git init
-git add README.md
-git commit -m "first commit"
-git branch -M main
-git remote add origin 
-git push -u origin main
+df <- read.csv ("projet-donnees.csv", sep=",")
 ```
+
 
 
 
