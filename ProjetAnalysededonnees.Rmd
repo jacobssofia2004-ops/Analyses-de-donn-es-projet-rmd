@@ -12,7 +12,7 @@ output:
       smooth_scroll: false
 ---
 
-## Titre 2
+## Hello
 
 ### Titre 3
 
