@@ -1,107 +1,254 @@
 ---
-title: "TP2"
-author: "Jacobs Sofia & Bauer Julie"
-date: "2025-09-25"
+title: "Projet d'analyse de données – Études sur les volcans méditerranéens"
+author: |
+  <em>Jacobs Sofia & Bauer Julie<br>
+  Master STPE/MV – UCA<br>
+  Année académique 2025-2026</em>
+date: "<span style='float:right;'>25 septembre 2025</span>"
 output: 
-  rmarkdown::html_document:
-    theme: cosmo
-    number_sections: yes
+  html_document:
     toc: yes
     toc_float:  
-      collapsed: false
-      smooth_scroll: false
+      collapsed: false     
+      smooth_scroll: true  
+      position: right     
+    number_sections: yes
+    css: styles.css
+
 ---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,message = FALSE)
+```
 
+<<<<<<< HEAD
 ## Hello World !!!
+=======
+# Introduction 
+>>>>>>> 04788a1e986aaf8f56e11b883f4aa9ba49ff44af
 
-### Titre 3
+Dans le monde, on compte plus de 800 millions de personnes vivant à proximité d’un volcan dont 200 millions à moins de 30 km d’un volcan actif (CNRS, 2025). La caractérisation de l’aléa volcanique est donc essentielle pour la sureté des habitants en territoires volcaniques. Cela passe notamment par la compréhension de lien divers entre un volcan et le type de dépôts ou l’intensité éruptive qu’il produit. Notre étude se concentre sur la région méditerranéenne, en particulier sur deux édifices grecs et quatre édifices italiens, ces deux pays étant particulièrement connues pour leurs volcanismes très actifs et notamment plusieurs éruptions historiques. Les volcans italiens sont l’Etna (Sicile, Italie), le Vésuve (Naples, sud de l’Italie), Lipari et Vulcano (Iles Eoliennes, Sicile, Italie). Les volcans grecques sont le Santorin et le Nisyros (Iles Dodecanese, Grèce). Ici nous ne nous concentrerons que sur la période 2015 à 2025.
 
+Nous avons les données de magnitudes, types de magma et profondeur du magma pour chaque édifice volcanique en plus des coordonnées des éruptions pour chaque édifices.
+L’objectif est de comprendre si il existe un lien entre intensité de l’éruption (magnitude) et l’édifice volcanique afin de déterminer quelle population s’expose à un risque plus important. Il sera aussi particulièrement intéressant de regarder le lien possible entre volcans et type de magma car le risques lié à un volcan est en partie du au type de matériaux qu’il produit. Ces résultats pourrait également nous permettre de déterminer si les populations d’un volcan en particulier s’exposent à un risque accrue. Enfin, d’un point de vus purement recherche nous allons nous intéressé au lien entre édifice et profondeur du magma car c’est grâce à la détection du magma en profondeur que l’on peut anticiper une éruption mais aussi à la profondeur en fonction du type de magma, cela nous permettra, au terme d’une étude pétrologique ultérieure de prédire des temps de remonté du magma et des durées pré-éruptifs afin d’alerter la population en cas d’éruption imminente si ce lien existe.
 
-```{css toc-content, echo = FALSE}
-/* === Police générale moderne === */
-body {
-  font-family: "Fira Sans", "Segoe UI", Arial, sans-serif;
-  color: #222; /* texte foncé sur fond clair */
-  background-color: #ffffff; /* fond blanc */
-  line-height: 1.6;
-}
+# Analyse exploiratoire des données 
 
-/* === Titres === */
-h1 {
-  font-family: "Orbitron", "Fira Sans", sans-serif;
-  color: #cc9900; /* Jaune Mercure assombri pour rester lisible sur fond blanc */
-  border-bottom: 3px solid #cc9900;
-  padding-bottom: 5px;
-}
+## Chargement et préparation des données
 
-h2 {
-  font-family: "Fira Sans", sans-serif;
-  color: #006699; /* Bleu plus sombre */
-  border-left: 4px solid #006699;
-  padding-left: 8px;
-}
+```{r}
+install.packages("tmap", 
+                 repos = c("https://r-tmap.r-universe.dev", 
+                           "https://cloud.r-project.org"))
+# Packages
+install.packages("tmap")
+install.packages("geodata")
+install.packages("sf")
 
-h3 {
-  font-family: "Fira Sans", sans-serif;
-  color: #2e7d32; /* Vert plus foncé et lisible */
-}
+library(geodata)
+library(tmap)
+library(sf)
 
-h4 {
-  font-family: "Fira Sans", sans-serif;
-  color: #e65100; /* Orange profond */
-}
+# 1. Télécharger les shapefiles
+admin_greece <- gadm(country = "Greece", level = 1, path = "Data/")
+admin_italy  <- gadm(country = "Italy", level = 1, path = "Data/")
 
-/* === Tableaux === */
-table {
-  border-collapse: collapse;
-  width: 100%;
-  margin: 15px 0;
-  border: 1px solid #ccc;
-}
-thead {
-  background-color: #f2f2f2;
-  color: #000;
-}
-tbody tr:nth-child(odd) {
-  background-color: #fafafa;
-}
-tbody tr:hover {
-  background-color: #f0f0f0;
-}
+# 2. Convertir en sf
+admin_greece_sf <- st_as_sf(admin_greece)
+admin_italy_sf  <- st_as_sf(admin_italy)
 
-/* === Code blocks === */
-pre, code {
-  font-family: "Fira Code", monospace;
-  border-radius: 6px;
-  padding: 8px;
-  background-color: #f5f5f5; /* gris clair */
-  color: #222;
-  overflow-x: auto; 
-}
+# 3. Fusionner les deux pays
+admin_combined_sf <- rbind(admin_greece_sf, admin_italy_sf)
 
-/* === Liens === */
-a {
-  color: #d63384; /* rose soutenu */
-  text-decoration: none;
-  transition: color 0.3s ease, text-decoration 0.3s ease;
-}
-a:hover {
-  color: #cc9900;
-  text-decoration: underline;
-}
+# 4. Convertir tes volcans en sf
+# df doit contenir les colonnes Longitude et Latitude
+volcans <- st_as_sf(df, coords = c("Longitude", "Latitude"), crs = 4326)
 
+# 5. Carte avec tmap
+tm_shape(admin_combined_sf) +
+  tm_borders(col = "black") +
+  tm_fill(col = "lightgray", alpha = 0.3) +
+  tm_shape(volcans) +
+  tm_dots(col = "red", size = 0.5) +
+  tm_layout(title = "Grèce et Italie avec volcans")
 
 ```
 
 
 ```{r}
-
-
-df <- read.csv ("projet-donnees.csv", sep=",")
+df <- read.csv("DataR.csv", sep = ";")
+str(df)
+#modification des types de variables 
+df [,c(1,2,8,10,11)]<- lapply(df[,c(1,2,8,10,11)], as.factor)
+str(df)
+var_quali <- df[,c("Latitude","Longitude","Depth","Magnitude")]
+var_quanti <- df[,c("Volcanoes","Mag.Type", "Region","Country")]
 ```
 
 
+```{r}
+summary(df)
+mean(df$Magnitude)
+range(df$Magnitude)
+sd(df$Magnitude)
+range(df$Depth)
 
 
+```
 
+```{r}
+
+calc_variances_by_group <- function(df, group_col = "Volcanoes") {
+  # 1. Sélectionner les colonnes numériques
+  numeric_cols <- sapply(df, is.numeric)
+  numeric_vars <- names(df)[numeric_cols]
+  
+  # Exclure latitude et longitude si elles existent
+  numeric_vars <- setdiff(numeric_vars, c("Latitude", "Longitude"))
+  
+  if (length(numeric_vars) == 0) {
+    stop("Aucune colonne numérique (hors Latitude/Longitude) trouvée dans le data frame.")
+  }
+  
+  # 2. Calcul de la variance globale
+  global_var <- sapply(df[numeric_vars], var, na.rm = TRUE)
+  global_mean_depth <- if("Depth" %in% names(df)) mean(df$Depth, na.rm = TRUE) else NA
+  global_df <- data.frame(
+    Group = "Global",
+    Variable = names(global_var),
+    Variance = as.numeric(global_var),
+    MeanDepth = global_mean_depth,
+    stringsAsFactors = FALSE
+  )
+  
+  # 3. Calcul par groupe
+  groups <- unique(df[[group_col]])
+  group_list <- lapply(groups, function(g) {
+    sub_df <- df[df[[group_col]] == g, numeric_vars, drop = FALSE]
+    s <- sapply(sub_df, var, na.rm = TRUE)
+    mean_depth <- if("Depth" %in% names(sub_df)) mean(sub_df$Depth, na.rm = TRUE) else NA
+    data.frame(
+      Group = g,
+      Variable = names(s),
+      Variance = as.numeric(s),
+      MeanDepth = mean_depth,
+      stringsAsFactors = FALSE
+    )
+  })
+  group_df <- do.call(rbind, group_list)
+  
+  # 4. Combiner les deux (global + groupes)
+  result <- rbind(global_df, group_df)
+  rownames(result) <- NULL
+  return(result)
+}
+
+# Exécution
+calc_variances_by_group(df)
+
+
+```
+
+```{r}
+df_quant <- df[,c("Depth","Magnitude")]
+apply(df_quant,2,sd)
+apply(df_quant,2,sd)/apply(df_quant,2,mean)
+```
+
+```{r}
+library(ggplot2)
+library(viridis)  # pour une palette de couleurs agréable
+
+```
+
+```{r}
+ggplot(df, aes(x = "", y = Depth)) +
+  geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +  # outliers visibles
+  stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "blue") + # moyenne
+  scale_fill_viridis(discrete = TRUE, option = "D") +  # palette harmonieuse
+  theme_minimal(base_size = 14) +
+  scale_y_log10() +
+  labs(
+    title = "Distribution des profondeurs pour l'ensemble des volcans",
+    x = "",
+    y = "Profondeur (log(km)"
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(angle = 45, hjust = 1),  # rotation labels si nécessaire
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 12)
+  )
+
+```
+
+
+```{r}
+ggplot(df,aes(x=Magnitude))+
+  geom_histogram(binwidth = 0.2, fill="lightgreen", color="black", alpha=0.7)+
+  theme_minimal()+
+  labs(title="Histogramme de la magnitude de éruptions ",
+       x="Magnitude",
+       y="")+
+  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
+```
+
+```{r}
+ggplot(df,aes(x=Mag.Type))+
+  geom_bar(binwidth = 0.2, fill="lightyellow", color="black", alpha=0.7)+
+  theme_minimal()+
+  labs(title="Répartition des types de magmas éruptés pour l'ensemble des volcans ",
+       x="Type de magma",
+       y="Nombre d'observation")+
+  theme(plot.title = element_text(hjust = 0.5, face="bold", size=10))
+```
+```{r}
+ggplot(df, aes(x = Volcanoes, y = Magnitude, fill = Volcanoes)) +
+  geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +  # outliers visibles
+  stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "blue") + # moyenne
+  scale_fill_viridis(discrete = TRUE, option = "D") +  # palette harmonieuse
+  theme_minimal(base_size = 14) +
+  labs(
+    title = "Distribution de la Magnitude par Volcan",
+    x = "Volcans",
+    y = "Magnitude"
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(angle = 45, hjust = 1),  # rotation labels si nécessaire
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 12))
+```
+```{r}
+ggplot(df) +  geom_point(aes(x = Depth, y = Magnitude, color = Volcanoes), size = 3, alpha = 0.5) +
+  labs(
+    title = "Distribution de la magnitude des volcans en fonction de la profondeur du magma",
+    x = "Profondeur (km)",
+    y = "Magnitude"
+  ) +
+  theme_minimal ()
+```
+```{r}
+library(ggplot2)
+library(viridis)  # pour une palette de couleurs agréable)
+ggplot(df, aes(x = Mag.Type, y = Magnitude, fill = Mag.Type)) +
+  geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +  # outliers visibles
+  stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "blue") + # moyenne
+  scale_fill_viridis(discrete = TRUE, option = "D") +  # palette harmonieuse
+  theme_minimal(base_size = 14) +
+  labs(
+    title = "Distribution de la Magnitude par Volcan",
+    x = "Volcans",
+    y = "Magnitude"
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(angle = 45, hjust = 1),  # rotation labels si nécessaire
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 12))
+```
+
+```{r}
+cor.test(df$Depth, df$Magnitude)
+
+```
 

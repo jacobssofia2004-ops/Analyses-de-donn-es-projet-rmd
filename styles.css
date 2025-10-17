@@ -1,0 +1,197 @@
+/* =====================================================
+   Thème élégant à fond ivoire pour rapport scientifique
+   Police : Arial (lisible, classique)
+   Style : clair, professionnel et aéré
+   ===================================================== */
+
+/* === Corps général === */
+body {
+  font-family: "Arial", "Helvetica Neue", sans-serif;
+  color: #1a1a1a;
+  background-color: #f8f5ef; /* beige ivoire clair */
+  line-height: 1.7;
+  margin: 0;
+  padding: 40px 0;
+  text-rendering: optimizeLegibility;
+}
+
+/* === Conteneur principal === */
+.main-container {
+  background-color: #ffffff;
+  max-width: 900px;
+  margin: auto;
+  padding: 45px 60px;
+  border-radius: 10px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+}
+
+/* === Titres === */
+h1, h2, h3, h4, h5 {
+  font-family: "Arial", sans-serif;
+  color: #3b3b3b;
+  margin-top: 2em;
+  margin-bottom: 0.6em;
+  line-height: 1.3;
+}
+
+h1 {
+  font-size: 2em;
+  text-align: center;
+  color: #2c3e50;
+  border-bottom: 2px solid #c2b280; /* doré clair */
+  padding-bottom: 8px;
+  margin-bottom: 1em;
+}
+
+h2 {
+  font-size: 1.6em;
+  color: #5a4f2f;
+  border-left: 4px solid #c2b280;
+  padding-left: 10px;
+}
+
+h3 {
+  font-size: 1.3em;
+  color: #6e5c3f;
+}
+
+h4 {
+  font-size: 1.1em;
+  color: #444;
+}
+
+/* === Paragraphes === */
+p {
+  text-align: justify;
+  text-justify: inter-word;
+  text-indent: 1.5em;
+  margin-bottom: 1em;
+  font-size: 16px;
+}
+
+/* === Listes === */
+ul, ol {
+  text-align: justify;
+  margin-left: 2em;
+  margin-bottom: 1em;
+}
+
+/* === Citations === */
+blockquote {
+  font-style: italic;
+  color: #4d4d4d;
+  border-left: 4px solid #c2b280;
+  padding-left: 15px;
+  margin-left: 0;
+  text-align: justify;
+  background-color: #f3f0e8;
+  border-radius: 6px;
+}
+
+/* === Liens === */
+a {
+  color: #7a6b42;
+  text-decoration: none;
+  border-bottom: 1px solid #b8a87a;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+a:hover {
+  color: #5a4f2f;
+  border-color: #7a6b42;
+}
+
+/* === Tableaux === */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 20px 0;
+  font-size: 14px;
+}
+
+th, td {
+  border: 1px solid #dcd5c7;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+thead {
+  background-color: #f2e9da;
+  color: #3b3b3b;
+  font-weight: bold;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f9f7f3;
+}
+
+tbody tr:hover {
+  background-color: #f3e9d7;
+}
+
+/* === Code et blocs de code === */
+pre, code {
+  font-family: "Courier New", monospace;
+  background-color: #f3f1ec;
+  color: #333;
+  border-radius: 5px;
+  padding: 6px 8px;
+  font-size: 14px;
+  overflow-x: auto;
+}
+
+pre {
+  border-left: 3px solid #c2b280;
+  padding: 10px 12px;
+}
+
+/* === Table des matières === */
+#toc {
+  background-color: #fffdfa;
+  border: 1px solid #e0d7c7;
+  border-radius: 6px;
+  padding: 12px 16px;
+  max-width: 260px;
+  font-size: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+#toc a {
+  color: #5a4f2f;
+  text-decoration: none;
+}
+#toc a:hover {
+  color: #7a6b42;
+  text-decoration: underline;
+}
+
+#toc_wrapper {
+  position: sticky;
+  top: 20px;
+}
+
+/* === Figures === */
+img {
+  display: block;
+  margin: 20px auto;
+  max-width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+figcaption {
+  text-align: center;
+  font-size: 14px;
+  color: #555;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* === Pied de page === */
+footer {
+  font-size: 13px;
+  color: #666;
+  text-align: center;
+  margin-top: 50px;
+  border-top: 1px solid #d5cbb8;
+  padding-top: 10px;
+}
