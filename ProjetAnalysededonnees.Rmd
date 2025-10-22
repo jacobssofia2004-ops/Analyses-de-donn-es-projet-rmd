@@ -20,11 +20,7 @@ output:
 knitr::opts_chunk$set(echo = FALSE,message = FALSE)
 ```
 
-<<<<<<< HEAD
-## Hello World !!!
-=======
 # Introduction 
->>>>>>> 04788a1e986aaf8f56e11b883f4aa9ba49ff44af
 
 Dans le monde, on compte plus de 800 millions de personnes vivant à proximité d’un volcan dont 200 millions à moins de 30 km d’un volcan actif (CNRS, 2025). La caractérisation de l’aléa volcanique est donc essentielle pour la sureté des habitants en territoires volcaniques. Cela passe notamment par la compréhension de lien divers entre un volcan et le type de dépôts ou l’intensité éruptive qu’il produit. Notre étude se concentre sur la région méditerranéenne, en particulier sur deux édifices grecs et quatre édifices italiens, ces deux pays étant particulièrement connues pour leurs volcanismes très actifs et notamment plusieurs éruptions historiques. Les volcans italiens sont l’Etna (Sicile, Italie), le Vésuve (Naples, sud de l’Italie), Lipari et Vulcano (Iles Eoliennes, Sicile, Italie). Les volcans grecques sont le Santorin et le Nisyros (Iles Dodecanese, Grèce). Ici nous ne nous concentrerons que sur la période 2015 à 2025.
 
@@ -37,8 +33,12 @@ L’objectif est de comprendre si il existe un lien entre intensité de l’éru
 
 ```{r}
 install.packages("tmap", 
-                 repos = c("https://r-tmap.r-universe.dev", 
-                           "https://cloud.r-project.org"))
+                 repos = c("https://r-tmap.r-universe.dev",
+```
+
+
+```{r}
+"https://cloud.r-project.org"))
 # Packages
 install.packages("tmap")
 install.packages("geodata")
@@ -78,7 +78,8 @@ tm_shape(admin_combined_sf) +
 df <- read.csv("DataR.csv", sep = ";")
 str(df)
 #modification des types de variables 
-df [,c(1,2,8,10,11)]<- lapply(df[,c(1,2,8,10,11)], as.factor)
+df [,c(1,2,8,10,11,13)]<- lapply(df[,c(1,2,8,10,11,13)], as.factor)
+df[, 12] <- as.numeric(df[, 12])
 str(df)
 var_quali <- df[,c("Latitude","Longitude","Depth","Magnitude")]
 var_quanti <- df[,c("Volcanoes","Mag.Type", "Region","Country")]
