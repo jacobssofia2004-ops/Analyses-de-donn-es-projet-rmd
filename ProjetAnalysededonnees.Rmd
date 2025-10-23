@@ -32,21 +32,22 @@ L’objectif est de comprendre si il existe un lien entre intensité de l’éru
 ## Chargement et préparation des données
 
 ```{r}
-install.packages("tmap", 
-                 repos = c("https://r-tmap.r-universe.dev",
+install.packages("tmap")
+library(tmap)
 ```
 
 
 ```{r}
-"https://cloud.r-project.org"))
 # Packages
 install.packages("tmap")
 install.packages("geodata")
 install.packages("sf")
 
+
 library(geodata)
 library(tmap)
 library(sf)
+
 
 # 1. Télécharger les shapefiles
 admin_greece <- gadm(country = "Greece", level = 1, path = "Data/")
@@ -83,6 +84,11 @@ df[, 12] <- as.numeric(df[, 12])
 str(df)
 var_quali <- df[,c("Latitude","Longitude","Depth","Magnitude")]
 var_quanti <- df[,c("Volcanoes","Mag.Type", "Region","Country")]
+
+volcanIt <- df[15:36,]
+str(volcanIt)
+volcanGr <- df[c(1:13,37:47),]
+str(volcanGr)
 ```
 
 
@@ -220,13 +226,7 @@ ggplot(df, aes(x = Volcanoes, y = Magnitude, fill = Volcanoes)) +
     plot.subtitle = element_text(size = 12))
 ```
 ```{r}
-ggplot(df) +  geom_point(aes(x = Depth, y = Magnitude, color = Volcanoes), size = 3, alpha = 0.5) +
-  labs(
-    title = "Distribution de la magnitude des volcans en fonction de la profondeur du magma",
-    x = "Profondeur (km)",
-    y = "Magnitude"
-  ) +
-  theme_minimal ()
+
 ```
 ```{r}
 library(ggplot2)
@@ -252,4 +252,98 @@ ggplot(df, aes(x = Mag.Type, y = Magnitude, fill = Mag.Type)) +
 cor.test(df$Depth, df$Magnitude)
 
 ```
+```{r}
+cor0.test <- function(x, y, rho0 = 0, alternative = c("two.sided", "less", "greater")) {
+  n <- length(x)
+  r <- cor(x, y)
+  z <- log((1 + r) / (1 - r)) / 2
+  Ez <- log((1 + rho0) / (1 - rho0)) / 2  # la moyenne de Z
+  stat <- (z - Ez) / sqrt(1 / (n - 3))    # Z centrée-réduite
+
+  if (alternative[1] == "two.sided") {
+    pvalue <- 2 * pnorm(abs(stat), lower.tail = FALSE)
+  } else if (alternative[1] == "less") {
+    pvalue <- pnorm(stat, lower.tail = TRUE)
+  } else if (alternative[1] == "greater") {
+    pvalue <- pnorm(stat, lower.tail = FALSE)
+  }
+
+  return(list(statistic = stat, p.value = pvalue))
+}
+cor0.test(df$Depth, df$Magnitude, rho0 = 0)
+
+
+```
+```{r}
+res <- lm(Magnitude~Depth,data=df)
+library (ggplot2)
+ggplot(df) +  geom_point(aes(x = Depth, y = Magnitude, color = Volcanoes), size = 3, alpha = 0.5) +
+  labs(
+    title = "Distribution de la magnitude des volcans en fonction de la profondeur du magma",
+    x = "Profondeur (km)",
+    y = "Magnitude"
+  ) +
+  theme_minimal ()
+
+summary(res)
+
+```
+```{r}
+model <- lm(Volume ~ Magnitude+ Depth, data = df)
+stepwise_model <- step(model, direction = "both", trace = TRUE)
+```
+```{r}
+summary(stepwise_model)
+ggplot(df) +  geom_point(aes(x = Magnitude, y = Volume, color = Volcanoes), size = 3, alpha = 0.5) +
+  labs(
+    title = "Distribution des volumes estimés des volcans en fonction de la magnitude",
+    x = "Magnitude",
+    y = "Volume"
+  ) +
+  theme_minimal ()
+```
+```{r}
+library(car)
+leveneTest(Magnitude ~ Mag.Type, data = df)
+anova_magma <- aov(Magnitude ~ Mag.Type, data = df)
+summary(anova_magma)
+TukeyHSD(anova_magma)
+```
+
+```{r}
+leveneTest(Magnitude ~ Volcanoes, data = df)
+anova_volcan <- aov(Magnitude ~ Volcanoes, data = df)
+summary(anova_volcan)#pas terrible mais parler avec Julie 
+#demander à la prof si on peut faire une ancova + demander si on doit vérifier les conditions pour la régression linéaire 
+
+```
+```{r}
+install.packages("randomForest")
+library(randomForest)
+rf_model <- randomForest(Magnitude ~ Depth + Volume , data = df,
+                         ntree = 500, mtry = 2, importance = TRUE)
+colSums(is.na(df))
+
+```
+```{r}
+install.packages("gmodels")
+library(gmodels)
+
+CrossTable(df$Volcanoes, df$Mag.Type, 
+           prop.chisq = FALSE, 
+           prop.t = FALSE, 
+           prop.r = TRUE, 
+           prop.c = TRUE,
+           chisq = TRUE)
+```
+```{r}
+library ("PerformanceAnalytics")
+chart.Correlation(df[,c("Depth","Magnitude","Volume")])
+```
+```{r}
+tab <- table(df$Mag.Type, df$Region)
+tab
+chisq.test(tab)
+```
+
 
