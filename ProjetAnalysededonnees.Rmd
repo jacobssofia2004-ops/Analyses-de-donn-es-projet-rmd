@@ -31,7 +31,10 @@ L’objectif est de comprendre si il existe un lien entre intensité de l’éru
 
 ## Chargement et préparation des données
 
+
+
 ```{r}
+#ne pas toucher
 install.packages("tmap")
 library(tmap)
 ```
@@ -39,6 +42,7 @@ library(tmap)
 
 ```{r}
 # Packages
+#ne pas toucher 
 install.packages("tmap")
 install.packages("geodata")
 install.packages("sf")
@@ -79,8 +83,8 @@ tm_shape(admin_combined_sf) +
 df <- read.csv("DataR.csv", sep = ";")
 str(df)
 #modification des types de variables 
-df [,c(1,2,8,10,11,13)]<- lapply(df[,c(1,2,8,10,11,13)], as.factor)
-df[, 12] <- as.numeric(df[, 12])
+df [,c(1,2,8,11,12,13)]<- lapply(df[,c(1,2,8,11,12,13)], as.factor)
+df$Volume <- as.numeric(df$Volume)
 str(df)
 var_quali <- df[,c("Latitude","Longitude","Depth","Magnitude")]
 var_quanti <- df[,c("Volcanoes","Mag.Type", "Region","Country")]
@@ -197,6 +201,7 @@ ggplot(df,aes(x=Magnitude))+
        x="Magnitude",
        y="")+
   theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
+#density + le boxplot 
 ```
 
 ```{r}
@@ -226,7 +231,7 @@ ggplot(df, aes(x = Volcanoes, y = Magnitude, fill = Volcanoes)) +
     plot.subtitle = element_text(size = 12))
 ```
 ```{r}
-
+#que 2 variables pas 3, faire test de corrélation linéaire dessus 
 ```
 ```{r}
 library(ggplot2)
@@ -247,30 +252,31 @@ ggplot(df, aes(x = Mag.Type, y = Magnitude, fill = Mag.Type)) +
     plot.title = element_text(face = "bold", size = 16),
     plot.subtitle = element_text(size = 12))
 ```
+```{r}
+library(dplyr)
+
+df %>%
+  group_by(Volcanoes) %>%
+  summarise(
+    mean_mag = mean(Magnitude, na.rm = TRUE),
+    sd_mag = sd(Magnitude, na.rm = TRUE),
+    min_mag = min(Magnitude, na.rm = TRUE),
+    max_mag = max(Magnitude, na.rm = TRUE),
+    median_mag = median(Magnitude, na.rm = TRUE)
+  )
+
+```
+
+
+
+
 
 ```{r}
 cor.test(df$Depth, df$Magnitude)
 
 ```
 ```{r}
-cor0.test <- function(x, y, rho0 = 0, alternative = c("two.sided", "less", "greater")) {
-  n <- length(x)
-  r <- cor(x, y)
-  z <- log((1 + r) / (1 - r)) / 2
-  Ez <- log((1 + rho0) / (1 - rho0)) / 2  # la moyenne de Z
-  stat <- (z - Ez) / sqrt(1 / (n - 3))    # Z centrée-réduite
 
-  if (alternative[1] == "two.sided") {
-    pvalue <- 2 * pnorm(abs(stat), lower.tail = FALSE)
-  } else if (alternative[1] == "less") {
-    pvalue <- pnorm(stat, lower.tail = TRUE)
-  } else if (alternative[1] == "greater") {
-    pvalue <- pnorm(stat, lower.tail = FALSE)
-  }
-
-  return(list(statistic = stat, p.value = pvalue))
-}
-cor0.test(df$Depth, df$Magnitude, rho0 = 0)
 
 
 ```
@@ -289,8 +295,10 @@ summary(res)
 
 ```
 ```{r}
+#faire un log de la magnitude
 model <- lm(Volume ~ Magnitude+ Depth, data = df)
-stepwise_model <- step(model, direction = "both", trace = TRUE)
+stepwise_model <- step(model, direction = "both", trace = FALSE)
+summary(stepwise_model)
 ```
 ```{r}
 summary(stepwise_model)
