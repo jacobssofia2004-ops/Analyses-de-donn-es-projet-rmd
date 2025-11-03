@@ -31,13 +31,14 @@ L’objectif est de comprendre si il existe un lien entre intensité de l’éru
 
 ## Chargement et préparation des données
 
+
 ```{r}
-df <- read.csv("DataR.csv", sep = ";")
+df <- read.csv("DataR.csv", sep = ";")#importation des données
 str(df)
 #modification des types de variables 
 df [,c(1,2,8,11,12,13)]<- lapply(df[,c(1,2,8,11,12,13)], as.factor)
 df$Volume <- as.numeric(df$Volume)
-str(df)
+
 var_quali <- df[,c("Latitude","Longitude","Depth","Magnitude")]
 var_quanti <- df[,c("Volcanoes","Mag.Type", "Region","Country")]
 
@@ -121,7 +122,9 @@ apply(df_quant,2,sd)/apply(df_quant,2,mean)
 
 # Graphiques des analyses univariés
 
+
 ```{r}
+#library des packages nécessaire 
 library(ggplot2)
 library(viridis)  # pour une palette de couleurs agréable
 
@@ -162,15 +165,32 @@ ggplot(df,aes(x=Magnitude))+
 ```
 ```{r}
 #séparer les deux populations que l'on observe dans le graphique précédent 
-population1 <- df$Magnitude[df$Magnitude < 3]  # population faible
-population2 <- df$Magnitude[df$Magnitude >= 3] # population forte
-
-
+df_forte  <- df[df$Magnitude >= 3, ]
+df_faible <- df[df$Magnitude < 3, ] # population forte
+```
+```{r}
+ggplot(df_forte,aes(x=Magnitude))+
+  geom_histogram(binwidth = 0.2, fill="lightblue", color="black", alpha=0.7)+
+  geom_density(color = "red", size = 1.2) +
+  theme_minimal()+
+  labs(title="Histogramme de la magnitude des éruptions fortes (>=3) ",
+       x="Magnitude",
+       y="")+
+  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
+```
+```{r}
+ggplot(df_faible,aes(x=Magnitude))+
+  geom_histogram(binwidth = 0.2, fill="lightblue", color="black", alpha=0.7)+
+  theme_minimal()+
+  labs(title="Histogramme de la magnitude des éruptions fortes (>=3) ",
+       x="Magnitude",
+       y="")+
+  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
 ```
 
 
 ```{r}
-ggplot(df, aes(x = "", y = Magnitude)) +
+ggplot(df, aes(x="", y = Magnitude)) +
   geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +  # outliers visibles
   stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "blue") + # moyenne
   scale_fill_viridis(discrete = TRUE, option = "D") +  # palette harmonieuse
@@ -198,6 +218,26 @@ ggplot(df,aes(x=Mag.Type))+
        y="Nombre d'observation")+
   theme(plot.title = element_text(hjust = 0.5, face="bold", size=10))
 ```
+```{r}
+ggplot(df,aes(x=log(Volume)))+
+  geom_histogram(binwidth = 0.2, fill="lightgreen", color="black", alpha=0.7)+
+  geom_density(color = "red", size = 1.2) +
+  theme_minimal()+
+  labs(title="Histogramme de la magnitude de éruptions ",
+       x="Volume érupté",
+       y="")+
+  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
+```
+```{r}
+ggplot(df_faible,aes(x=log(Volume)))+
+  geom_histogram(binwidth = 0.2, fill="lightblue", color="black", alpha=0.7)+
+  theme_minimal()+
+  labs(title="Histogramme de la magnitude des éruptions fortes (>=3) ",
+       x="Magnitude",
+       y="")+
+  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
+```
+
 
 # Analyse bivariés
 
@@ -274,14 +314,20 @@ cor.test(df$Depth, df$Magnitude)
 
 ```{r}
 
-ggplot(df) +  geom_point(aes(x = Magnitude, y = Volume, color = Volcanoes), size = 3, alpha = 0.5) +
+ggplot(df) +  geom_point(aes(x = Magnitude, y = log(Volume)), size = 1) +
   labs(
     title = "Distribution des volumes estimés des volcans en fonction de la magnitude",
     x = "Magnitude",
     y = "Volume"
   ) +
   theme_minimal ()
+res <- lm(log(Volume)~Magnitude,data=df)
+summary(res)
+plot(res)
+cor.test (df$Magnitude, log(df$Volume))
 ```
+
+
 ```{r}
 library(car)
 leveneTest(Magnitude ~ Mag.Type, data = df)
@@ -294,7 +340,7 @@ TukeyHSD(anova_magma)
 leveneTest(Magnitude ~ Volcanoes, data = df)
 anova_volcan <- aov(Magnitude ~ Volcanoes, data = df)
 summary(anova_volcan)#pas terrible mais parler avec Julie 
-#demander à la prof si on peut faire une ancova + demander si on doit vérifier les conditions pour la régression linéaire 
+#demander à la prof si on peut faire une ancova  
 
 ```
 
