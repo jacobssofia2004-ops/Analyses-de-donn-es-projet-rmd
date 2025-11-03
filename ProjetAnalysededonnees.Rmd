@@ -33,50 +33,7 @@ L’objectif est de comprendre si il existe un lien entre intensité de l’éru
 
 
 
-```{r}
-#ne pas toucher
-install.packages("tmap")
-library(tmap)
-```
 
-
-```{r}
-# Packages
-#ne pas toucher 
-install.packages("tmap")
-install.packages("geodata")
-install.packages("sf")
-
-
-library(geodata)
-library(tmap)
-library(sf)
-
-
-# 1. Télécharger les shapefiles
-admin_greece <- gadm(country = "Greece", level = 1, path = "Data/")
-admin_italy  <- gadm(country = "Italy", level = 1, path = "Data/")
-
-# 2. Convertir en sf
-admin_greece_sf <- st_as_sf(admin_greece)
-admin_italy_sf  <- st_as_sf(admin_italy)
-
-# 3. Fusionner les deux pays
-admin_combined_sf <- rbind(admin_greece_sf, admin_italy_sf)
-
-# 4. Convertir tes volcans en sf
-# df doit contenir les colonnes Longitude et Latitude
-volcans <- st_as_sf(df, coords = c("Longitude", "Latitude"), crs = 4326)
-
-# 5. Carte avec tmap
-tm_shape(admin_combined_sf) +
-  tm_borders(col = "black") +
-  tm_fill(col = "lightgray", alpha = 0.3) +
-  tm_shape(volcans) +
-  tm_dots(col = "red", size = 0.5) +
-  tm_layout(title = "Grèce et Italie avec volcans")
-
-```
 
 
 ```{r}
@@ -275,11 +232,19 @@ df %>%
 cor.test(df$Depth, df$Magnitude)
 
 ```
-```{r}
 
 
 
-```
+
+
+
+
+
+
+
+
+
+
 ```{r}
 res <- lm(Magnitude~Depth,data=df)
 library (ggplot2)
@@ -294,14 +259,9 @@ ggplot(df) +  geom_point(aes(x = Depth, y = Magnitude, color = Volcanoes), size 
 summary(res)
 
 ```
+
 ```{r}
-#faire un log de la magnitude
-model <- lm(Volume ~ Magnitude+ Depth, data = df)
-stepwise_model <- step(model, direction = "both", trace = FALSE)
-summary(stepwise_model)
-```
-```{r}
-summary(stepwise_model)
+
 ggplot(df) +  geom_point(aes(x = Magnitude, y = Volume, color = Volcanoes), size = 3, alpha = 0.5) +
   labs(
     title = "Distribution des volumes estimés des volcans en fonction de la magnitude",
@@ -325,16 +285,8 @@ summary(anova_volcan)#pas terrible mais parler avec Julie
 #demander à la prof si on peut faire une ancova + demander si on doit vérifier les conditions pour la régression linéaire 
 
 ```
-```{r}
-install.packages("randomForest")
-library(randomForest)
-rf_model <- randomForest(Magnitude ~ Depth + Volume , data = df,
-                         ntree = 500, mtry = 2, importance = TRUE)
-colSums(is.na(df))
 
-```
 ```{r}
-install.packages("gmodels")
 library(gmodels)
 
 CrossTable(df$Volcanoes, df$Mag.Type, 
@@ -344,10 +296,8 @@ CrossTable(df$Volcanoes, df$Mag.Type,
            prop.c = TRUE,
            chisq = TRUE)
 ```
-```{r}
-library ("PerformanceAnalytics")
-chart.Correlation(df[,c("Depth","Magnitude","Volume")])
-```
+
+
 ```{r}
 tab <- table(df$Mag.Type, df$Region)
 tab
