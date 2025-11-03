@@ -31,11 +31,6 @@ L’objectif est de comprendre si il existe un lien entre intensité de l’éru
 
 ## Chargement et préparation des données
 
-
-
-
-
-
 ```{r}
 df <- read.csv("DataR.csv", sep = ";")
 str(df)
@@ -62,6 +57,7 @@ range(df$Depth)
 
 
 ```
+
 ## Calcule des paramètres de dispersions
 
 ```{r}
@@ -123,7 +119,7 @@ apply(df_quant,2,sd)
 apply(df_quant,2,sd)/apply(df_quant,2,mean)
 ```
 
-##Graphiques des analyses univariés
+# Graphiques des analyses univariés
 
 ```{r}
 library(ggplot2)
@@ -164,6 +160,13 @@ ggplot(df,aes(x=Magnitude))+
        y="")+
   theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
 ```
+```{r}
+#séparer les deux populations que l'on observe dans le graphique précédent 
+population1 <- df$Magnitude[df$Magnitude < 3]  # population faible
+population2 <- df$Magnitude[df$Magnitude >= 3] # population forte
+
+
+```
 
 
 ```{r}
@@ -185,7 +188,6 @@ ggplot(df, aes(x = "", y = Magnitude)) +
     plot.subtitle = element_text(size = 12))
 
 ```
-```
 
 ```{r}
 ggplot(df,aes(x=Mag.Type))+
@@ -196,6 +198,11 @@ ggplot(df,aes(x=Mag.Type))+
        y="Nombre d'observation")+
   theme(plot.title = element_text(hjust = 0.5, face="bold", size=10))
 ```
+
+# Analyse bivariés
+
+que 2 variables pas 3, faire test de corrélation linéaire dessus
+
 ```{r}
 ggplot(df, aes(x = Volcanoes, y = Magnitude, fill = Volcanoes)) +
   geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +  # outliers visibles
@@ -215,11 +222,6 @@ ggplot(df, aes(x = Volcanoes, y = Magnitude, fill = Volcanoes)) +
 ```
 
 
-#Analyse bivariés
-
-```{r}
-#que 2 variables pas 3, faire test de corrélation linéaire dessus 
-```
 ```{r}
 library(ggplot2)
 library(viridis)  # pour une palette de couleurs agréable)
@@ -239,6 +241,7 @@ ggplot(df, aes(x = Mag.Type, y = Magnitude, fill = Mag.Type)) +
     plot.title = element_text(face = "bold", size = 16),
     plot.subtitle = element_text(size = 12))
 ```
+
 ```{r}
 library(dplyr)
 
@@ -254,30 +257,8 @@ df %>%
 
 ```
 
-
-
-
-
-```{r}
-cor.test(df$Depth, df$Magnitude)
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
 ```{r}
 res <- lm(Magnitude~Depth,data=df)
-library (ggplot2)
 ggplot(df) +  geom_point(aes(x = Depth, y = Magnitude, color = Volcanoes), size = 3, alpha = 0.5) +
   labs(
     title = "Distribution de la magnitude des volcans en fonction de la profondeur du magma",
@@ -286,9 +267,10 @@ ggplot(df) +  geom_point(aes(x = Depth, y = Magnitude, color = Volcanoes), size 
   ) +
   theme_minimal ()
 
-summary(res)
+cor.test(df$Depth, df$Magnitude)
 
 ```
+
 
 ```{r}
 
