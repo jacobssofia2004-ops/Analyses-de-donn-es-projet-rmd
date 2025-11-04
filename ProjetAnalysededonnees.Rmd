@@ -32,7 +32,7 @@ L’objectif est de comprendre si il existe un lien entre intensité de l’éru
 ## Chargement et préparation des données
 
 ```{r}
-packages <- c("dplyr", "ggplot2", "tidyr","performance","car","maps","ggspatial","sf", "prettymapr","rnaturalearth","rnaturalearthdata")
+packages <- c("dplyr", "ggplot2", "tidyr","performance","car","maps","ggspatial","sf", "prettymapr","rnaturalearth","rnaturalearthdata","viridis")
 
 installed_packages <- rownames(installed.packages())
 to_install <- packages[!(packages %in% installed_packages)]
@@ -50,8 +50,18 @@ invisible(lapply(packages, function(pkg) {
 ```
 
 ```{r}
+df <- read.csv("DataR.csv", sep = ";")#importation des données
+str(df)
+#modification des types de variables 
+df [,c(1,2,8,11,12,13,14)]<- lapply(df[,c(1,2,8,11,12,13,14)], as.factor)
+df$Volume <- as.numeric(df$Volume)
+summary(df)
 
+var_quali <- df[,c("Depth","Magnitude")]
+var_quanti <- df[,c("Volcanoes","Mag.Type", "Region","Country")]
+```
 
+```{r}
 world <- ne_countries(scale = "medium", returnclass = "sf")
 
 # Tracer la carte
@@ -121,27 +131,6 @@ ggplot(data = world) +
         panel.grid = element_line(color = "white"))
 ```
 
-
-```{r}
-df <- read.csv("DataR.csv", sep = ";")#importation des données
-str(df)
-#modification des types de variables 
-df [,c(1,2,8,11,12,13)]<- lapply(df[,c(1,2,8,11,12,13)], as.factor)
-df$Volume <- as.numeric(df$Volume)
-
-var_quali <- df[,c("Latitude","Longitude","Depth","Magnitude")]
-var_quanti <- df[,c("Volcanoes","Mag.Type", "Region","Country")]
-
-volcanIt <- df[15:36,]
-str(volcanIt)
-volcanGr <- df[c(1:13,37:47),]
-str(volcanGr)
-```
-
-
-```{r}
-summary(df)
-```
 
 ## Calcule des paramètres de dispersions
 
@@ -252,7 +241,7 @@ ggplot(df, aes(x = "", y = Depth)) +
 ```{r}
 ggplot(df,aes(x=Magnitude))+
   geom_histogram(binwidth = 0.2, fill="lightgreen", color="black", alpha=0.7)+
-  geom_density(color = "red", size = 1.2) +
+  geom_density(color = "red", size = 1) +
   theme_minimal()+
   labs(title="Histogramme de la magnitude de éruptions ",
        x="Magnitude",
@@ -264,10 +253,13 @@ ggplot(df,aes(x=Magnitude))+
 df_forte  <- df[df$Magnitude >= 3, ]
 df_faible <- df[df$Magnitude < 3, ] # population forte
 ```
+
+
+
 ```{r}
 ggplot(df_forte,aes(x=Magnitude))+
   geom_histogram(binwidth = 0.2, fill="lightblue", color="black", alpha=0.7)+
-  geom_density(color = "red", size = 1.2) +
+  geom_density(color = "red", size = 1) +
   theme_minimal()+
   labs(title="Histogramme de la magnitude des éruptions fortes (>=3) ",
        x="Magnitude",
@@ -317,7 +309,7 @@ ggplot(df,aes(x=Mag.Type))+
 ```{r}
 ggplot(df,aes(x=log(Volume)))+
   geom_histogram(binwidth = 0.2, fill="lightgreen", color="black", alpha=0.7)+
-  geom_density(color = "red", size = 1.2) +
+  geom_density(color = "red", linewidth= 1) +
   theme_minimal()+
   labs(title="Histogramme de la magnitude de éruptions ",
        x="Volume érupté",
@@ -328,8 +320,8 @@ ggplot(df,aes(x=log(Volume)))+
 ggplot(df_faible,aes(x=log(Volume)))+
   geom_histogram(binwidth = 0.2, fill="lightblue", color="black", alpha=0.7)+
   theme_minimal()+
-  labs(title="Histogramme de la magnitude des éruptions fortes (>=3) ",
-       x="Magnitude",
+  labs(title="Histogramme des volumes éruptés du groupes forts (>=3) ",
+       x="Volumme érupté",
        y="")+
   theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
 ```
@@ -339,7 +331,9 @@ ggplot(df_faible,aes(x=log(Volume)))+
 
 que 2 variables pas 3, faire test de corrélation linéaire dessus
 
+
 ```{r}
+#boxplot entre la magnitude et les volcans
 ggplot(df, aes(x = Volcanoes, y = Magnitude, fill = Volcanoes)) +
   geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +  # outliers visibles
   stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "blue") + # moyenne
@@ -359,15 +353,14 @@ ggplot(df, aes(x = Volcanoes, y = Magnitude, fill = Volcanoes)) +
 
 
 ```{r}
-library(ggplot2)
-library(viridis)  # pour une palette de couleurs agréable)
+#boxplot entre la magnitude et les types de magma
 ggplot(df, aes(x = Mag.Type, y = Magnitude, fill = Mag.Type)) +
   geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +  # outliers visibles
   stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "blue") + # moyenne
   scale_fill_viridis(discrete = TRUE, option = "D") +  # palette harmonieuse
   theme_minimal(base_size = 14) +
   labs(
-    title = "Distribution de la Magnitude par Volcan",
+    title = "Distribution de la Magnitude par Type de magma",
     x = "Volcans",
     y = "Magnitude"
   ) +
@@ -377,6 +370,7 @@ ggplot(df, aes(x = Mag.Type, y = Magnitude, fill = Mag.Type)) +
     plot.title = element_text(face = "bold", size = 16),
     plot.subtitle = element_text(size = 12))
 ```
+
 
 
 
@@ -426,22 +420,8 @@ summary(anova_volcan)#pas terrible mais parler avec Julie
 
 ```
 
-```{r}
-library(gmodels)
-
-CrossTable(df$Volcanoes, df$Mag.Type, 
-           prop.chisq = FALSE, 
-           prop.t = FALSE, 
-           prop.r = TRUE, 
-           prop.c = TRUE,
-           chisq = TRUE)
-```
 
 
-```{r}
-tab <- table(df$Mag.Type, df$Region)
-tab
-chisq.test(tab)
-```
+
 
 
