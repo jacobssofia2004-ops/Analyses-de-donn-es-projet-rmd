@@ -31,6 +31,34 @@ L’objectif est de comprendre si il existe un lien entre intensité de l’éru
 
 ## Chargement et préparation des données
 
+```{r}
+packages <- c("dplyr", "ggplot2", "tidyr","performance","car","maps")
+
+installed_packages <- rownames(installed.packages())
+to_install <- packages[!(packages %in% installed_packages)]
+
+if (length(to_install) > 0) {
+  message("Installation des packages manquants : ", paste(to_install, collapse = ", "))
+  install.packages(to_install)
+}
+
+invisible(lapply(packages, function(pkg) {
+  library(pkg, character.only = TRUE)
+  message("→ ", pkg, " chargé avec succès.")
+}))
+
+```
+
+```{r}
+ggplot(df, aes(x = Longitude, y = Latitude)) +
+  borders(c("gr"), colour = "gray70", fill = "gray95") +
+  geom_point(aes(color = Volcanoes), alpha = 0.7) +
+  coord_quickmap() +
+  theme_minimal()
+
+```
+
+
 
 ```{r}
 df <- read.csv("DataR.csv", sep = ";")#importation des données
@@ -51,73 +79,79 @@ str(volcanGr)
 
 ```{r}
 summary(df)
-mean(df$Magnitude)
-range(df$Magnitude)
-sd(df$Magnitude)
-range(df$Depth)
-
-
 ```
 
 ## Calcule des paramètres de dispersions
 
 ```{r}
-
-calc_variances_by_group <- function(df, group_col = "Volcanoes") {
-  # 1. Sélectionner les colonnes numériques
-  numeric_cols <- sapply(df, is.numeric)
-  numeric_vars <- names(df)[numeric_cols]
-  
-  # Exclure latitude et longitude si elles existent
-  numeric_vars <- setdiff(numeric_vars, c("Latitude", "Longitude"))
-  
-  if (length(numeric_vars) == 0) {
-    stop("Aucune colonne numérique (hors Latitude/Longitude) trouvée dans le data frame.")
+#permet de calculer la variance et la moyenne pour les variables 
+calc_variances_by_group <- function(df, group_col = "Group", numeric_vars = NULL) {
+  if (is.null(numeric_vars)) {
+    numeric_vars <- names(df)[sapply(df, is.numeric)]
   }
-  
-  # 2. Calcul de la variance globale
+
+  # 1. Calcul global
   global_var <- sapply(df[numeric_vars], var, na.rm = TRUE)
-  global_mean_depth <- if("Depth" %in% names(df)) mean(df$Depth, na.rm = TRUE) else NA
+  global_mean <- sapply(df[numeric_vars], mean, na.rm = TRUE)
+
   global_df <- data.frame(
     Group = "Global",
     Variable = names(global_var),
     Variance = as.numeric(global_var),
-    MeanDepth = global_mean_depth,
+    Mean = as.numeric(global_mean),
     stringsAsFactors = FALSE
   )
-  
-  # 3. Calcul par groupe
+
+  # 2. Calcul par groupe
   groups <- unique(df[[group_col]])
   group_list <- lapply(groups, function(g) {
     sub_df <- df[df[[group_col]] == g, numeric_vars, drop = FALSE]
-    s <- sapply(sub_df, var, na.rm = TRUE)
-    mean_depth <- if("Depth" %in% names(sub_df)) mean(sub_df$Depth, na.rm = TRUE) else NA
+    s_var <- sapply(sub_df, var, na.rm = TRUE)
+    s_mean <- sapply(sub_df, mean, na.rm = TRUE)
     data.frame(
       Group = g,
-      Variable = names(s),
-      Variance = as.numeric(s),
-      MeanDepth = mean_depth,
+      Variable = names(s_var),
+      Variance = as.numeric(s_var),
+      Mean = as.numeric(s_mean),
       stringsAsFactors = FALSE
     )
   })
   group_df <- do.call(rbind, group_list)
-  
-  # 4. Combiner les deux (global + groupes)
+
+  # 3. Combiner
   result <- rbind(global_df, group_df)
   rownames(result) <- NULL
+
+  # 4. Supprimer la notation scientifique
+  result$Variance <- format(result$Variance, scientific = FALSE, digits = 6)
+  result$Mean <- format(result$Mean, scientific = FALSE, digits = 6)
+
   return(result)
 }
-
-# Exécution
-calc_variances_by_group(df)
+calc_variances_by_group(df, group_col = "Volcanoes", numeric_vars = c("Depth", "Magnitude", "Volume"))
 
 
 ```
 
 ```{r}
-df_quant <- df[,c("Depth","Magnitude")]
+#à quoi ça sert (je ne sais pas), pas vraiment utile 
+df_quant <- df[,c("Depth","Magnitude","Volume")]
 apply(df_quant,2,sd)
 apply(df_quant,2,sd)/apply(df_quant,2,mean)
+```
+```{r}
+library(dplyr)
+
+df %>%
+  group_by(Volcanoes) %>%
+  summarise(
+    mean_mag = mean(Magnitude, na.rm = TRUE),
+    sd_mag = sd(Magnitude, na.rm = TRUE),
+    min_mag = min(Magnitude, na.rm = TRUE),
+    max_mag = max(Magnitude, na.rm = TRUE),
+    median_mag = median(Magnitude, na.rm = TRUE)
+  )
+
 ```
 
 # Graphiques des analyses univariés
@@ -282,20 +316,7 @@ ggplot(df, aes(x = Mag.Type, y = Magnitude, fill = Mag.Type)) +
     plot.subtitle = element_text(size = 12))
 ```
 
-```{r}
-library(dplyr)
 
-df %>%
-  group_by(Volcanoes) %>%
-  summarise(
-    mean_mag = mean(Magnitude, na.rm = TRUE),
-    sd_mag = sd(Magnitude, na.rm = TRUE),
-    min_mag = min(Magnitude, na.rm = TRUE),
-    max_mag = max(Magnitude, na.rm = TRUE),
-    median_mag = median(Magnitude, na.rm = TRUE)
-  )
-
-```
 
 ```{r}
 res <- lm(Magnitude~Depth,data=df)
@@ -323,8 +344,7 @@ ggplot(df) +  geom_point(aes(x = Magnitude, y = log(Volume)), size = 1) +
   theme_minimal ()
 res <- lm(log(Volume)~Magnitude,data=df)
 summary(res)
-plot(res)
-cor.test (df$Magnitude, log(df$Volume))
+check_model(res)
 ```
 
 
