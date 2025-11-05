@@ -32,7 +32,7 @@ L’objectif est de comprendre si il existe un **lien entre intensité de l’é
 ## Chargement et préparation des données
 
 ```{r}
-packages <- c("dplyr", "ggplot2", "tidyr","performance","car","maps","ggspatial","sf", "prettymapr","rnaturalearth","rnaturalearthdata","viridis","see","patchwork")
+packages <- c("dplyr", "ggplot2", "tidyr","performance","car","maps","ggspatial","sf", "prettymapr","rnaturalearth","rnaturalearthdata","viridis","see","patchwork","geosphere","reshape2")
 
 installed_packages <- rownames(installed.packages())
 to_install <- packages[!(packages %in% installed_packages)]
@@ -132,6 +132,31 @@ ggplot(data = world) +
 ```
 
 
+```{r}
+
+centres <- df %>%
+  group_by(Volcanoes) %>%
+  summarise(
+    Longitude = mean(Longitude, na.rm = TRUE),
+    Latitude = mean(Latitude, na.rm = TRUE)
+  )
+dist_matrix_group <- distm(centres[, c("Longitude", "Latitude")], fun = distHaversine) / 1000
+rownames(dist_matrix_group) <- centres$Volcanoes
+colnames(dist_matrix_group) <- centres$Volcanoes
+```
+```{r}
+dist_long <- melt(dist_matrix_group)
+colnames(dist_long) <- c("Volcano1", "Volcano2", "Distance_km")
+ggplot(dist_long, aes(x = Volcano1, y = Volcano2, fill = Distance_km)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red") +
+  geom_text(aes(label = round(Distance_km, 1)), color = "black") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Distances entre groupes de volcans (km)", fill = "Distance (km)")
+```
+
+
 ## Calcule des paramètres de dispersions
 
 ```{r}
@@ -208,12 +233,6 @@ df %>%
 # Graphiques des analyses univariés
 
 
-```{r}
-#library des packages nécessaire 
-library(ggplot2)
-library(viridis)  # pour une palette de couleurs agréable
-
-```
 
 ## Analyse univariée de la profondeur
 ```{r}
@@ -314,6 +333,7 @@ ggplot(df_faible,aes(x=Magnitude))+
 ```
 
 ## Analyse univariée du type de magma
+## Analyse univariée du volume estimé
 ```{r}
 ggplot(df,aes(x=Mag.Type))+
   geom_bar(binwidth = 0.2, fill="lightyellow", color="black", alpha=0.7)+
@@ -334,7 +354,7 @@ ggplot(df,aes(x=log(Volume)))+
   theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
 ```
 
-## Analyse univariée du volume estimé
+
 
 ```{r}
 ggplot(df, aes(x="", y = Volume)) +
@@ -426,6 +446,19 @@ ggplot(df) +  geom_point(aes(x = Depth, y = Magnitude, color = Volcanoes), size 
   theme_minimal ()
 
 cor.test(df$Depth, df$Magnitude)
+#graphique 
+
+```
+```{r}
+
+#faire une anova avant de faire un test non paramétrique 
+kruskal.test(Depth ~ Volcanoes, data = df)
+kruskal.test(Depth ~ Magnitude, data = df)
+
+#ces deux test sont des test non paramétriques. Ils ne dépendent pas d'hypothèse sur la distribution des résidues, ni sur des paramètres particuliers comme la moyenne ou la variance. Ceux-ci sont basés sur des rangs.
+#Le test de Kruskal-Wallis est utilisé pour déterminer s'il existe des différences significatives entre les médianes de plusieurs groupes indépendants.
+#dans ce cas-ci il n'y a pas de différence significative entre les groupes de volcans et de magnitude en ce qui concerne la profondeur du magma.
+
 
 ```
 
@@ -443,9 +476,13 @@ res <- lm(log(Volume)~Magnitude,data=df)
 summary(res)
 check_model(res)
 ```
+```{r}
+
+```
 
 
 ```{r}
+
 library(car)
 leveneTest(Magnitude ~ Mag.Type, data = df)
 anova_magma <- aov(Magnitude ~ Mag.Type, data = df)
