@@ -209,6 +209,13 @@ calc_variances_by_group(df, group_col = "Volcanoes", numeric_vars = c("Depth", "
 
 ```
 
+En moyenne, Lipari génère des magmas qui viennent de plus profond et le Santorin les plus superficiels.
+Nisyros est le volcan avec le plus grand volume de produit estimé en moyenne et Vulcano emet le moins sur une même période d'activité.
+La magnitude des éruptions est en moyenne plus importante pour Nisyros. Cela est cohérent car la magnitude est directement reliée au volume emis, plus le volume est important plus la magnitude le sera, hors Nisyros à le volume moyen le plus important donc la magnitude moyenne la plus importante. Cependant ce n'est pas Vulcano qui possède la plus faible moyenne des magnitudes mais l'Etna. Cela peut s'expliquer par le faite que l'Etna à plus érupter sur 2015-2025 par rapport à Vulcano pour un volume moyen de débris légèrement inférieur. La moyenne des magnitudes de l'Etna pourra donc être légèrement plus faible que celle de Vulcano.
+
+Les valeurs de variance pour le volume et la magnitude sont ccohérentes par rapport au jeu de donné mais pour la profondeur, celles-ci sont beaucoup trop grande, cela s'explique par la présence d'outlier (7 point de donnée) de valeur beaucoup trop importante ou encore bien trop faibe qui donnent une dispersion des mesures exagérée.
+
+On remarque qur pour le Vésuve nous n'avons qu'une seule éruption. Ainsi, nous ne pouvons pas calsuler de valeurs de dispersion et la profondeurs, la magnitude et le volume moyen seront les valeurs des données de l'éruption.
 ```{r}
 #à quoi ça sert (je ne sais pas), pas vraiment utile 
 df_quant <- df[,c("Depth","Magnitude","Volume")]
@@ -229,6 +236,7 @@ df %>%
   )
 
 ```
+Les volcans grecs porduisent une plus large d'éruption de magnitudes différentes que les volacans Italiens et se sont égalment eux qui produisent les éruptions les plus intenses avec Lipari. Cependant, il n'y pas de grande difference entre les différents paramètres de dispersion des les volcans.
 
 # Graphiques des analyses univariés
 
@@ -244,7 +252,8 @@ p<- ggplot(df, aes(x = "", y = Depth)) +
   theme_minimal(base_size = 14) +
   scale_y_log10() +
   labs(
-    title = "Distribution des profondeurs pour l'ensemble des volcans",
+    title = "Distribution des profondeurs
+    pour l'ensemble des volcans",
     x = "",
     y = "Profondeur (log(km)"
   ) +
@@ -258,34 +267,28 @@ p1 <- ggplot(df,aes(x=Depth))+
   geom_histogram(binwidth = 0.2, fill="lightyellow", color="black", alpha=0.7)+
   geom_density(color = "red", size = 1) +
   theme_minimal()+
-  labs(title="Histogramme de la profondeur des magmas ",
+  labs(title="Histogramme de la 
+       profondeur des magmas ",
        x="Depth",
        y="")+
   theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
-p+p1
+p+p1+plot_layout(widths = c(1,2.25))
 ```
+Pour l'ensemble des volcans, hormis les 7 outliers visibles en rouge sur le boxplot, la répartition des rpofondeurs sur l'hitogramme est symétique par rapport à une valeur centrale de 10 km. La majorité de nos magmas proviennet donc de chambre localsiée entre 15 et 7 km ce qui reste relativement superficielle.
 
-```{r}
-ggplot(df,aes(x=Depth))+
-  geom_histogram(binwidth = 0.2, fill="lightyellow", color="black", alpha=0.7)+
-  geom_density(color = "red", size = 1) +
-  theme_minimal()+
-  labs(title="Histogramme de la profondeur des magmas ",
-       x="Depth",
-       y="")+
-  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
-```
 ## Analyse univariée de la magnitude
 ```{r}
-ggplot(df,aes(x=Magnitude))+
+p2<- ggplot(df,aes(x=Magnitude))+
   geom_histogram(binwidth = 0.2, fill="lightgreen", color="black", alpha=0.7)+
   geom_density(color = "red", size = 1) +
   theme_minimal()+
-  labs(title="Histogramme de la magnitude de éruptions ",
+  labs(title="Histogramme de la
+       magnitude de éruptions ",
        x="Magnitude",
        y="")+
   theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
 ```
+
 ```{r}
 #séparer les deux populations que l'on observe dans le graphique précédent 
 df_forte  <- df[df$Magnitude >= 3, ]
@@ -293,14 +296,15 @@ df_faible <- df[df$Magnitude < 3, ] # population forte
 ```
 
 ```{r}
-ggplot(df, aes(x="", y = Magnitude)) +
+p3 <- ggplot(df, aes(x = "", y = Magnitude)) +
   geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +  # outliers visibles
   stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "blue") + # moyenne
   scale_fill_viridis(discrete = TRUE, option = "D") +  # palette harmonieuse
   theme_minimal(base_size = 14) +
   scale_y_log10() +
   labs(
-    title = "Distribution des magnitudes pour l'ensemble des volcans",
+    title = "Distribution des magnitudes 
+    pour l'ensemble des volcans",
     x = "",
     y = "Magnitude"
   ) +
@@ -309,31 +313,38 @@ ggplot(df, aes(x="", y = Magnitude)) +
     axis.text.x = element_text(angle = 45, hjust = 1),  # rotation labels si nécessaire
     plot.title = element_text(face = "bold", size = 16),
     plot.subtitle = element_text(size = 12))
-```
 
+p3+p2+plot_layout(widths = c(1,1.5))
+```
+Le boxplot ne montre pas de valeur abérente. Cependant, l'histogramme des magnitudes montre une réputation bimodale des données. Une première partie des magnitudes se situe en dessous de 3, ce sont les valeurs de magnétudes faibles et une seconde partie se trouve au-dessus de 3 avec des valeurs dites fortes.
 
 ```{r}
-ggplot(df_forte,aes(x=Magnitude))+
+ p4 <- ggplot(df_forte,aes(x=Magnitude))+
   geom_histogram(binwidth = 0.2, fill="lightblue", color="black", alpha=0.7)+
   geom_density(color = "red", size = 1) +
   theme_minimal()+
-  labs(title="Histogramme de la magnitude des éruptions fortes (>=3) ",
+  labs(title="Histogramme de la magnitude 
+       des éruptions fortes (>=3) ",
        x="Magnitude",
        y="")+
   theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
 ```
 ```{r}
-ggplot(df_faible,aes(x=Magnitude))+
+p5 <- ggplot(df_faible,aes(x=Magnitude))+
   geom_histogram(binwidth = 0.2, fill="lightblue", color="black", alpha=0.7)+
+  geom_density(color = "red", size = 1) +
   theme_minimal()+
-  labs(title="Histogramme de la magnitude des éruptions faible (<3) ",
+  labs(title="Histogramme de la magnitude 
+       des éruptions faible (<3) ",
        x="Magnitude",
        y="")+
   theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
+p5+p4+plot_layout(widths = c(1,1))
 ```
+Maintenant on regarde les histogrammes pour chacuns des modes. Les fortes magnitudes ont une distribution sysmétrique qui s'articule autour d'une valeur centrale de 4,3 tands que les faibles magnitudes suivent aussi une distribution sysméetique autour de 1,8 mais reste moins marqué et s'étale dans l'intervalle 1 à 2,2.
 
 ## Analyse univariée du type de magma
-## Analyse univariée du volume estimé
+
 ```{r}
 ggplot(df,aes(x=Mag.Type))+
   geom_bar(binwidth = 0.2, fill="lightyellow", color="black", alpha=0.7)+
@@ -343,28 +354,34 @@ ggplot(df,aes(x=Mag.Type))+
        y="Nombre d'observation")+
   theme(plot.title = element_text(hjust = 0.5, face="bold", size=10))
 ```
+La majorité des magmas sont basaltique (MB) avec quelques occurences andésitique (MA) et latitique (ML=un magma latitique est un magma basaltique avec une texture particulière, il n'y a pas de différence de chimie importante). La série est basic et donc faiblement différencié. En effet il n'y a quaiment pas de magma différencié rhyolique (MR). La faible présence de basalte alcalin (MBa) révelle que les magmas générés appartiennen à la série subalcaline. Enfin, il se produit un petit peu de mélande car 3 magmas on uen composition intermédiaire entre basaltique et andésitique (MB-MA).
+
+## Analyse univariée du volume estimé
+
 ```{r}
-ggplot(df,aes(x=log(Volume)))+
+p6 <- ggplot(df,aes(x=log(Volume)))+
   geom_histogram(binwidth = 0.2, fill="lightgreen", color="black", alpha=0.7)+
   geom_density(color = "red", linewidth= 1) +
   theme_minimal()+
-  labs(title="Histogramme des volumes estimés de éruptions ",
+  labs(title="Histogramme des volumes
+       estimés de éruptions ",
        x="Volume érupté",
        y="")+
   theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
 ```
 
 
-
 ```{r}
-ggplot(df, aes(x="", y = Volume)) +
+p7 <- ggplot(df, aes(x="", y = Volume)) +
   geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +  # outliers visibles
   stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "blue") + # moyenne
   scale_fill_viridis(discrete = TRUE, option = "D") +  # palette harmonieuse
   theme_minimal(base_size = 14) +
   scale_y_log10() +
   labs(
-    title = "Distribution des volumes estimés pour l'ensemble des volcans",
+    title = "Distribution des volumes 
+          estimés pour
+    l'ensemble des volcans",
     x = "",
     y = "Volume"
   ) +
@@ -373,7 +390,9 @@ ggplot(df, aes(x="", y = Volume)) +
     axis.text.x = element_text(angle = 45, hjust = 1),  # rotation labels si nécessaire
     plot.title = element_text(face = "bold", size = 16),
     plot.subtitle = element_text(size = 12))
+p7+p6+plot_layout(widths = c(1,2.5))
 ```
+Pour les volumes estimés, on montrent également une répartition bimodale tres similaire à celle des magnitudes avec une valeur intermétidaiure entre les faibles et les forts volumes de 16,25 km3. Les forts volumes s'articulent autour d'un mode de 18,7 km3 et la faibles volume autoure de 12,5 km3 mais clea reste moins symétirque et forme plus un plateau. Les volumes estimés sont utilisés pour déterminer la magnitude de l'érution, il est donc logique qu'il suivent excatement la meme distibution pour l'hitogramme et le boxplot.
 
 ## Analyse univariée du VEI estimé
 
@@ -386,7 +405,7 @@ ggplot(df,aes(x=VEI.approximatif))+
        y="Nombre d'observation")+
   theme(plot.title = element_text(hjust = 0.5, face="bold", size=10))
 ```
-
+Le VEI est une échelle de 1 à 8 donnant l'intensité d'une éruption volcanique (1 tres peu intense et 8 extremement intense). Dans la région, la majorité des éruptions sont de faible intensité avec un VEI autour de 1 et 2 (plus de 30 cas), VEI 1 étant majoritaire. On enregistre des éruption peu à moyennement intense (3 à 4), mais elles restent minoritaire. Il n'y a aucune éruption avec un VEI supérieure à 4, ce qui est rassurant puisque les grosses éruptions ont une occurences de plusieurs centaines d'année et sont donc difficilement visible sur une période de 10 ans.
 
 # Analyse bivariés
 
