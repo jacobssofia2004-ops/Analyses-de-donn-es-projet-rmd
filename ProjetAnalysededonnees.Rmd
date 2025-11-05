@@ -32,7 +32,7 @@ L’objectif est de comprendre si il existe un **lien entre intensité de l’é
 ## Chargement et préparation des données
 
 ```{r}
-packages <- c("dplyr", "ggplot2", "tidyr","performance","car","maps","ggspatial","sf", "prettymapr","rnaturalearth","rnaturalearthdata","viridis")
+packages <- c("dplyr", "ggplot2", "tidyr","performance","car","maps","ggspatial","sf", "prettymapr","rnaturalearth","rnaturalearthdata","viridis","see","patchwork")
 
 installed_packages <- rownames(installed.packages())
 to_install <- packages[!(packages %in% installed_packages)]
@@ -215,9 +215,10 @@ library(viridis)  # pour une palette de couleurs agréable
 
 ```
 
-
+## Analyse univariée de la profondeur
 ```{r}
-ggplot(df, aes(x = "", y = Depth)) +
+
+p<- ggplot(df, aes(x = "", y = Depth)) +
   geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +  # outliers visibles
   stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "blue") + # moyenne
   scale_fill_viridis(discrete = TRUE, option = "D") +  # palette harmonieuse
@@ -234,10 +235,28 @@ ggplot(df, aes(x = "", y = Depth)) +
     plot.title = element_text(face = "bold", size = 16),
     plot.subtitle = element_text(size = 12)
   )
-
+p1 <- ggplot(df,aes(x=Depth))+
+  geom_histogram(binwidth = 0.2, fill="lightyellow", color="black", alpha=0.7)+
+  geom_density(color = "red", size = 1) +
+  theme_minimal()+
+  labs(title="Histogramme de la profondeur des magmas ",
+       x="Depth",
+       y="")+
+  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
+p+p1
 ```
 
-
+```{r}
+ggplot(df,aes(x=Depth))+
+  geom_histogram(binwidth = 0.2, fill="lightyellow", color="black", alpha=0.7)+
+  geom_density(color = "red", size = 1) +
+  theme_minimal()+
+  labs(title="Histogramme de la profondeur des magmas ",
+       x="Depth",
+       y="")+
+  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
+```
+## Analyse univariée de la magnitude
 ```{r}
 ggplot(df,aes(x=Magnitude))+
   geom_histogram(binwidth = 0.2, fill="lightgreen", color="black", alpha=0.7)+
@@ -253,29 +272,6 @@ ggplot(df,aes(x=Magnitude))+
 df_forte  <- df[df$Magnitude >= 3, ]
 df_faible <- df[df$Magnitude < 3, ] # population forte
 ```
-
-
-
-```{r}
-ggplot(df_forte,aes(x=Magnitude))+
-  geom_histogram(binwidth = 0.2, fill="lightblue", color="black", alpha=0.7)+
-  geom_density(color = "red", size = 1) +
-  theme_minimal()+
-  labs(title="Histogramme de la magnitude des éruptions fortes (>=3) ",
-       x="Magnitude",
-       y="")+
-  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
-```
-```{r}
-ggplot(df_faible,aes(x=Magnitude))+
-  geom_histogram(binwidth = 0.2, fill="lightblue", color="black", alpha=0.7)+
-  theme_minimal()+
-  labs(title="Histogramme de la magnitude des éruptions fortes (>=3) ",
-       x="Magnitude",
-       y="")+
-  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
-```
-
 
 ```{r}
 ggplot(df, aes(x="", y = Magnitude)) +
@@ -294,9 +290,30 @@ ggplot(df, aes(x="", y = Magnitude)) +
     axis.text.x = element_text(angle = 45, hjust = 1),  # rotation labels si nécessaire
     plot.title = element_text(face = "bold", size = 16),
     plot.subtitle = element_text(size = 12))
-
 ```
 
+
+```{r}
+ggplot(df_forte,aes(x=Magnitude))+
+  geom_histogram(binwidth = 0.2, fill="lightblue", color="black", alpha=0.7)+
+  geom_density(color = "red", size = 1) +
+  theme_minimal()+
+  labs(title="Histogramme de la magnitude des éruptions fortes (>=3) ",
+       x="Magnitude",
+       y="")+
+  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
+```
+```{r}
+ggplot(df_faible,aes(x=Magnitude))+
+  geom_histogram(binwidth = 0.2, fill="lightblue", color="black", alpha=0.7)+
+  theme_minimal()+
+  labs(title="Histogramme de la magnitude des éruptions faible (<3) ",
+       x="Magnitude",
+       y="")+
+  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
+```
+
+## Analyse univariée du type de magma
 ```{r}
 ggplot(df,aes(x=Mag.Type))+
   geom_bar(binwidth = 0.2, fill="lightyellow", color="black", alpha=0.7)+
@@ -311,19 +328,43 @@ ggplot(df,aes(x=log(Volume)))+
   geom_histogram(binwidth = 0.2, fill="lightgreen", color="black", alpha=0.7)+
   geom_density(color = "red", linewidth= 1) +
   theme_minimal()+
-  labs(title="Histogramme de la magnitude de éruptions ",
+  labs(title="Histogramme des volumes estimés de éruptions ",
        x="Volume érupté",
        y="")+
   theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
 ```
+
+## Analyse univariée du volume estimé
+
 ```{r}
-ggplot(df_faible,aes(x=log(Volume)))+
-  geom_histogram(binwidth = 0.2, fill="lightblue", color="black", alpha=0.7)+
+ggplot(df, aes(x="", y = Volume)) +
+  geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +  # outliers visibles
+  stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "blue") + # moyenne
+  scale_fill_viridis(discrete = TRUE, option = "D") +  # palette harmonieuse
+  theme_minimal(base_size = 14) +
+  scale_y_log10() +
+  labs(
+    title = "Distribution des volumes estimés pour l'ensemble des volcans",
+    x = "",
+    y = "Volume"
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(angle = 45, hjust = 1),  # rotation labels si nécessaire
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 12))
+```
+
+## Analyse univariée du VEI estimé
+
+```{r}
+ggplot(df,aes(x=VEI.approximatif))+
+  geom_bar(binwidth = 0.2, fill="lightyellow", color="black", alpha=0.7)+
   theme_minimal()+
-  labs(title="Histogramme des volumes éruptés du groupes forts (>=3) ",
-       x="Volumme érupté",
-       y="")+
-  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
+  labs(title="Répartition des VEI pour l'ensemble des volcans ",
+       x="VEI",
+       y="Nombre d'observation")+
+  theme(plot.title = element_text(hjust = 0.5, face="bold", size=10))
 ```
 
 
