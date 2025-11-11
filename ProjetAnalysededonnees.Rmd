@@ -32,7 +32,7 @@ L’objectif est de comprendre si il existe un **lien entre intensité de l’é
 ## Chargement et préparation des données
 
 ```{r}
-packages <- c("dplyr", "ggplot2", "tidyr","performance","car","maps","ggspatial","sf", "prettymapr","rnaturalearth","rnaturalearthdata","viridis","see","patchwork","geosphere","reshape2")
+packages <- c("dplyr", "ggplot2", "tidyr","performance","car","maps","ggspatial","sf", "prettymapr","rnaturalearth","rnaturalearthdata","viridis","see","patchwork","geosphere","reshape2","cowplot")
 
 installed_packages <- rownames(installed.packages())
 to_install <- packages[!(packages %in% installed_packages)]
@@ -409,12 +409,110 @@ Le VEI est une échelle de 1 à 8 donnant l'intensité d'une éruption volcaniqu
 
 # Analyse bivariés
 
-que 2 variables pas 3, faire test de corrélation linéaire dessus
-
+Cette analyse univarié a permis de déterminer l'allure de chacune des variables du jeu données. Il est a présent possible d'étudier des liens possibles entre ces différentes données. Tout d'abord, 
 
 ```{r}
+p1 <- ggplot(df, aes(x = Volcanoes, y = Magnitude, color = Volcanoes)) +
+  geom_boxplot(alpha = 0, width = 0.4, outlier.shape = NA) +
+  stat_summary(fun = mean, geom = "point", shape = 21, size = 4, fill = "black") +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    axis.text.x = element_text(angle = 25, hjust = 1),
+    plot.title = element_text(face = "bold")
+  ) +
+  ggtitle("Boxplot")
+
+# ------------------------------------------------------
+# 2. Dotplot lisible et centré
+# ------------------------------------------------------
+p2 <- ggplot(df, aes(x = Volcanoes, y = Magnitude, color = Volcanoes)) +
+  geom_jitter(position = position_jitter(width = 0.15, height = 0), alpha = 0.7, size = 2) +
+  stat_summary(fun.data = mean_cl_normal, geom = "pointrange", size = 1) +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    axis.text.x = element_text(angle = 25, hjust = 1),
+    plot.title = element_text(face = "bold")
+  ) +
+  ggtitle("Dot")
+
+# ------------------------------------------------------
+# 3. Densité avec couleurs semi-transparentes et contours fins
+# ------------------------------------------------------
+p3 <- ggplot(df, aes(x = Magnitude, fill = Volcanoes)) +
+  geom_density(alpha = 0.4, color = "black", linewidth = 0.3) +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(face = "bold")
+  ) +
+  ggtitle("Density")
+
+# ------------------------------------------------------
+# 4. Combinaison propre et équilibrée
+# ------------------------------------------------------
+plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
+```
+Possible d'observer que certains groupes ont des distributions bimodal et non pas juste normal 
+
+```{r}
+anova_result <- aov(Magnitude ~ Volcanoes, data = df)
+summary(anova_result)
+```
+pas de différence significative entre les magnitudes moyennes des différents volcans
+
+```{r}
+p1 <- ggplot(df, aes(x = Mag.Type, y = Magnitude, color = Mag.Type)) +
+  geom_boxplot(alpha = 0, width = 0.4, outlier.shape = NA) +
+  stat_summary(fun = mean, geom = "point", shape = 21, size = 4, fill = "black") +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    axis.text.x = element_text(angle = 25, hjust = 1),
+    plot.title = element_text(face = "bold")
+  ) +
+  ggtitle("Boxplot")
+
+# ------------------------------------------------------
+# 2. Dotplot lisible et centré
+# ------------------------------------------------------
+p2 <- ggplot(df, aes(x = Mag.Type, y = Magnitude, color = Mag.Type)) +
+  geom_jitter(position = position_jitter(width = 0.15, height = 0), alpha = 0.7, size = 2) +
+  stat_summary(fun.data = mean_cl_normal, geom = "pointrange", size = 1) +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    axis.text.x = element_text(angle = 25, hjust = 1),
+    plot.title = element_text(face = "bold")
+  ) +
+  ggtitle("Dot")
+
+# ------------------------------------------------------
+# 3. Densité avec couleurs semi-transparentes et contours fins
+# ------------------------------------------------------
+p3 <- ggplot(df, aes(x = Magnitude, fill = Mag.Type)) +
+  geom_density(alpha = 0.4, color = "black", linewidth = 0.3) +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(face = "bold")
+  ) +
+  ggtitle("Density")
+
+# ------------------------------------------------------
+# 4. Combinaison propre et équilibrée
+# ------------------------------------------------------
+plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
+```
+il n'y a pas une distribution normale de la donnée 
+```{r}
 #boxplot entre la magnitude et les volcans
-ggplot(df, aes(x = Volcanoes, y = Magnitude, fill = Volcanoes)) +
+##ggplot(df, aes(x = Volcanoes, y = Magnitude, fill = Volcanoes)) +
   geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +  # outliers visibles
   stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "blue") + # moyenne
   scale_fill_viridis(discrete = TRUE, option = "D") +  # palette harmonieuse
@@ -453,7 +551,7 @@ ggplot(df, aes(x = Mag.Type, y = Magnitude, fill = Mag.Type)) +
 
 
 
-
+Lien entre la magnitude et la profondeur 
 ```{r}
 res <- lm(Magnitude~Depth,data=df)
 ggplot(df) +  geom_point(aes(x = Depth, y = Magnitude, color = Volcanoes), size = 3, alpha = 0.5) +
@@ -469,7 +567,17 @@ cor.test(df$Depth, df$Magnitude)
 
 ```
 ```{r}
+hist (df$Magnitude)
+hist (df$Depth)
+```
+les données ne suivent pas une loi normal
 
+```{r}
+anova_result <- aov(Depth ~ Magnitude, data = df)
+```
+
+
+```{r}
 #faire une anova avant de faire un test non paramétrique 
 kruskal.test(Depth ~ Volcanoes, data = df)
 kruskal.test(Depth ~ Magnitude, data = df)
@@ -477,9 +585,8 @@ kruskal.test(Depth ~ Magnitude, data = df)
 #ces deux test sont des test non paramétriques. Ils ne dépendent pas d'hypothèse sur la distribution des résidues, ni sur des paramètres particuliers comme la moyenne ou la variance. Ceux-ci sont basés sur des rangs.
 #Le test de Kruskal-Wallis est utilisé pour déterminer s'il existe des différences significatives entre les médianes de plusieurs groupes indépendants.
 #dans ce cas-ci il n'y a pas de différence significative entre les groupes de volcans et de magnitude en ce qui concerne la profondeur du magma.
-
-
 ```
+
 
 
 ```{r}
@@ -495,9 +602,7 @@ res <- lm(log(Volume)~Magnitude,data=df)
 summary(res)
 check_model(res)
 ```
-```{r}
-
-```
+pas possible de faire une interprétation car R2 = 1 
 
 
 ```{r}
