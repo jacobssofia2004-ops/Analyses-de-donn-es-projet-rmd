@@ -32,7 +32,7 @@ L’objectif est de comprendre si il existe un **lien entre intensité de l’é
 ## Chargement et préparation des données
 
 ```{r}
-packages <- c("dplyr", "ggplot2", "tidyr","performance","car","maps","ggspatial","sf", "prettymapr","rnaturalearth","rnaturalearthdata","viridis","see","patchwork","geosphere","reshape2","cowplot")
+packages <- c("dplyr", "ggplot2", "tidyr","performance","car","maps","ggspatial","sf", "prettymapr","rnaturalearth","rnaturalearthdata","viridis","see","patchwork","geosphere","reshape2","cowplot","factoextra","FactoMineR","plotly")
 
 installed_packages <- rownames(installed.packages())
 to_install <- packages[!(packages %in% installed_packages)]
@@ -804,7 +804,55 @@ ggplot(df, aes(x = Volcanoes, fill = Mag.Type)) +
 ```
 
 
+```{r}
+tab <- table(df$Volcanoes, df$Mag.Type)
+tab
+test_chi2 <- chisq.test(tab)
+#signifcatif car p-valeur <0.05
+
+res.ca <- CA(tab, graph = FALSE)
+fviz_ca_biplot(res.ca, repel = TRUE)
+```
+Clustering 
+```{r}
+df_cluster <- df[, c("Depth", "Magnitude", "Volume")]
+fviz_nbclust(df_cluster, kmeans, method = "wss") +
+  theme_minimal() +
+  labs(title = "Méthode du coude - détermination du nombre de clusters")
+
+```
+
+```{r}
+set.seed(42)  # pour reproductibilité
+
+km <- kmeans(df_cluster, centers = 3, nstart = 25)
+
+# Ajouter le cluster au jeu de données
+df$Cluster <- as.factor(km$cluster)
+```
+
+```{r}
+ggplot(df, aes(x = Magnitude, y = Depth, color = Cluster, size = Volume)) +
+  geom_point(alpha = 0.8) +
+  theme_minimal() +
+  labs(
+    title = "Clustering K-means : Volume, Profondeur et Magnitude",
+    x = "Magnitude",
+    y = "Profondeur"
+  ) +
+  scale_y_reverse()
+```
+```{r}
+aggregate(df[, c("Volume", "Depth", "Magnitude")], by = list(df$Cluster), mean)
+```
+```{r}
 
 
+plot_ly(df, x = ~Volume, y = ~Depth, z = ~Magnitude,
+        color = ~Cluster, colors = "Set1",
+        type = "scatter3d", mode = "markers") %>%
+  layout(title = "Clustering 3D : Volume, Profondeur et Magnitude")
+
+```
 
 
