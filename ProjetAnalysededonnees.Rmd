@@ -411,6 +411,92 @@ Le VEI est une échelle de 1 à 8 donnant l'intensité d'une éruption volcaniqu
 
 Cette analyse univarié a permis de déterminer l'allure de chacune des variables du jeu données. Il est a présent possible d'étudier des liens possibles entre ces différentes données. Tout d'abord, 
 
+Lien entre la magnitude et la profondeur 
+```{r}
+res <- lm(Magnitude~Depth,data=df)
+ggplot(df) +  geom_point(aes(x = Depth, y = Magnitude, color = Volcanoes), size = 3, alpha = 0.5) +
+  labs(
+    title = "Distribution de la magnitude des volcans en fonction de la profondeur du magma",
+    x = "Profondeur (km)",
+    y = "Magnitude"
+  ) +
+  theme_minimal ()
+
+
+```
+
+
+```{r}
+hist (df$Magnitude)
+hist (df$Depth)
+```
+
+pas relation linéaire entre les données donc pas possible de faire une étude anova par rapport à ça 
+
+les données ne suivent pas une loi normal donc pas possible de faire une anova 
+
+```{r}
+anova_result <- aov(Depth ~ Magnitude, data = df)
+summary(anova_result)
+
+```
+normalement peut pas utiliser l'anova donc il faut utiliser un autre  test comme kruskal-wallis
+
+```{r}
+#faire une anova avant de faire un test non paramétrique 
+kruskal.test(Depth ~ Volcanoes, data = df)
+kruskal.test(Depth ~ Magnitude, data = df)
+
+#ces deux test sont des test non paramétriques. Ils ne dépendent pas d'hypothèse sur la distribution des résidues, ni sur des paramètres particuliers comme la moyenne ou la variance. Ceux-ci sont basés sur des rangs.
+#Le test de Kruskal-Wallis est utilisé pour déterminer s'il existe des différences significatives entre les médianes de plusieurs groupes indépendants.
+#dans ce cas-ci il n'y a pas de différence significative entre les groupes de volcans et de magnitude en ce qui concerne la profondeur du magma.
+```
+
+lien entre magnitude et le volume estimé 
+```{r}
+
+ggplot(df) +  geom_point(aes(x = Magnitude, y = log(Volume)), size = 1) +
+  labs(
+    title = "Distribution des volumes estimés des volcans en fonction de la magnitude",
+    x = "Magnitude",
+    y = "Volume"
+  ) +
+  theme_minimal ()
+res <- lm(log(Volume)~Magnitude,data=df)
+summary(res)
+check_model(res)
+```
+
+
+pas possible de faire une interprétation car R2 = 1 car directement calculé par rapport à la magnitude. C'est pour cela que la relation VEI et magnitude n'est pas pertinente car celle-ci est également tiré de la magnitude
+
+
+Lien entre le volume et la profondeur 
+```{r}
+ggplot(df) +  geom_point(aes(x = log(Volume), y = Depth), size = 1) +
+  labs(
+    title = "Evolution de la profondeur en fonction du volume estimé des volcans",
+    x = "Log(Volume)",
+    y = "Profondeur"
+  ) +
+  theme_minimal ()
+```
+PAS DE TEST 
+
+
+
+
+pour moi elles ne sont pas distibué normalement après cela se discute. Si on considère que cela est normal déjà on peut faire deux groupes et faire une anova à plusieurs variables 
+```{r}
+var.test(df_faible$Magnitude, df_forte$Magnitude)#OK
+t.test (df_faible$Magnitude, df_forte$Magnitude, var.equal = TRUE)
+leveneTest(Magnitude ~ Volcanoes, data = df)
+anova_volcan <- aov(Magnitude ~ Volcanoes, data = df)
+summary(anova_volcan)  
+
+```
+
+Magnitude en fonction des volcans puis Magnitude en fonction du type de magma.
 ```{r}
 p1 <- ggplot(df, aes(x = Volcanoes, y = Magnitude, color = Volcanoes)) +
   geom_boxplot(alpha = 0, width = 0.4, outlier.shape = NA) +
@@ -456,6 +542,7 @@ p3 <- ggplot(df, aes(x = Magnitude, fill = Volcanoes)) +
 # ------------------------------------------------------
 plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
 ```
+
 Possible d'observer que certains groupes ont des distributions bimodal et non pas juste normal 
 
 ```{r}
@@ -467,7 +554,7 @@ pas de différence significative entre les magnitudes moyennes des différents v
 ```{r}
 p1 <- ggplot(df, aes(x = Mag.Type, y = Magnitude, color = Mag.Type)) +
   geom_boxplot(alpha = 0, width = 0.4, outlier.shape = NA) +
-  stat_summary(fun = mean, geom = "point", shape = 21, size = 4, fill = "black") +
+  stat_summary(fun = mean, geom = "point", shape = 16, size = 4, fill = "black") +
   theme_minimal(base_size = 14) +
   theme(
     legend.position = "none",
@@ -509,117 +596,211 @@ p3 <- ggplot(df, aes(x = Magnitude, fill = Mag.Type)) +
 # ------------------------------------------------------
 plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
 ```
-il n'y a pas une distribution normale de la donnée 
-```{r}
-#boxplot entre la magnitude et les volcans
-##ggplot(df, aes(x = Volcanoes, y = Magnitude, fill = Volcanoes)) +
-  geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +  # outliers visibles
-  stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "blue") + # moyenne
-  scale_fill_viridis(discrete = TRUE, option = "D") +  # palette harmonieuse
-  theme_minimal(base_size = 14) +
-  labs(
-    title = "Distribution de la Magnitude par Volcan",
-    x = "Volcans",
-    y = "Magnitude"
-  ) +
-  theme(
-    legend.position = "none",
-    axis.text.x = element_text(angle = 45, hjust = 1),  # rotation labels si nécessaire
-    plot.title = element_text(face = "bold", size = 16),
-    plot.subtitle = element_text(size = 12))
-```
-
-
-```{r}
-#boxplot entre la magnitude et les types de magma
-ggplot(df, aes(x = Mag.Type, y = Magnitude, fill = Mag.Type)) +
-  geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +  # outliers visibles
-  stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "blue") + # moyenne
-  scale_fill_viridis(discrete = TRUE, option = "D") +  # palette harmonieuse
-  theme_minimal(base_size = 14) +
-  labs(
-    title = "Distribution de la Magnitude par Type de magma",
-    x = "Volcans",
-    y = "Magnitude"
-  ) +
-  theme(
-    legend.position = "none",
-    axis.text.x = element_text(angle = 45, hjust = 1),  # rotation labels si nécessaire
-    plot.title = element_text(face = "bold", size = 16),
-    plot.subtitle = element_text(size = 12))
-```
-
-
-
-Lien entre la magnitude et la profondeur 
-```{r}
-res <- lm(Magnitude~Depth,data=df)
-ggplot(df) +  geom_point(aes(x = Depth, y = Magnitude, color = Volcanoes), size = 3, alpha = 0.5) +
-  labs(
-    title = "Distribution de la magnitude des volcans en fonction de la profondeur du magma",
-    x = "Profondeur (km)",
-    y = "Magnitude"
-  ) +
-  theme_minimal ()
-
-cor.test(df$Depth, df$Magnitude)
-#graphique 
-
-```
-```{r}
-hist (df$Magnitude)
-hist (df$Depth)
-```
-les données ne suivent pas une loi normal
-
-```{r}
-anova_result <- aov(Depth ~ Magnitude, data = df)
-```
-
-
-```{r}
-#faire une anova avant de faire un test non paramétrique 
-kruskal.test(Depth ~ Volcanoes, data = df)
-kruskal.test(Depth ~ Magnitude, data = df)
-
-#ces deux test sont des test non paramétriques. Ils ne dépendent pas d'hypothèse sur la distribution des résidues, ni sur des paramètres particuliers comme la moyenne ou la variance. Ceux-ci sont basés sur des rangs.
-#Le test de Kruskal-Wallis est utilisé pour déterminer s'il existe des différences significatives entre les médianes de plusieurs groupes indépendants.
-#dans ce cas-ci il n'y a pas de différence significative entre les groupes de volcans et de magnitude en ce qui concerne la profondeur du magma.
-```
-
-
+il n'y a pas une distribution normale de la donnée. Certains des types de magmas ne présentent qu'une seul variable. 
 
 ```{r}
 
-ggplot(df) +  geom_point(aes(x = Magnitude, y = log(Volume)), size = 1) +
-  labs(
-    title = "Distribution des volumes estimés des volcans en fonction de la magnitude",
-    x = "Magnitude",
-    y = "Volume"
-  ) +
-  theme_minimal ()
-res <- lm(log(Volume)~Magnitude,data=df)
-summary(res)
-check_model(res)
-```
-pas possible de faire une interprétation car R2 = 1 
-
-
-```{r}
-
-library(car)
 leveneTest(Magnitude ~ Mag.Type, data = df)
 anova_magma <- aov(Magnitude ~ Mag.Type, data = df)
 summary(anova_magma)
 TukeyHSD(anova_magma)
+
+
+```
+
+
+```{r}
+p1 <- ggplot(df, aes(x = Classification, y = Depth, color = Classification)) +
+  geom_boxplot(alpha = 0, width = 0.4, outlier.shape = NA) +
+  stat_summary(fun = mean, geom = "point", shape = 16, size = 4, fill = "black") +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    axis.text.x = element_text(angle = 25, hjust = 1),
+    plot.title = element_text(face = "bold")
+  ) +
+  ggtitle("Boxplot")
+
+# ------------------------------------------------------
+# 2. Dotplot lisible et centré
+# ------------------------------------------------------
+p2 <- ggplot(df, aes(x = Classification, y = Depth, color = Classification)) +
+  geom_jitter(position = position_jitter(width = 0.15, height = 0), alpha = 0.7, size = 2) +
+  stat_summary(fun.data = mean_cl_normal, geom = "pointrange", size = 1) +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    axis.text.x = element_text(angle = 25, hjust = 1),
+    plot.title = element_text(face = "bold")
+  ) +
+  ggtitle("Dot")
+
+# ------------------------------------------------------
+# 3. Densité avec couleurs semi-transparentes et contours fins
+# ------------------------------------------------------
+p3 <- ggplot(df, aes(x = Depth, fill = Classification)) +
+  geom_density(alpha = 0.4, color = "black", linewidth = 0.3) +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(face = "bold")
+  ) +
+  ggtitle("Density")
+
+# ------------------------------------------------------
+# 4. Combinaison propre et équilibrée
+# ------------------------------------------------------
+plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
+```
+```{r}
+p1 <- ggplot(df, aes(x = Mag.Type, y = Depth, color = Mag.Type)) +
+  geom_boxplot(alpha = 0, width = 0.4, outlier.shape = NA) +
+  stat_summary(fun = mean, geom = "point", shape = 16, size = 4, fill = "black") +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    axis.text.x = element_text(angle = 25, hjust = 1),
+    plot.title = element_text(face = "bold")
+  ) +
+  ggtitle("Boxplot")
+
+# ------------------------------------------------------
+# 2. Dotplot lisible et centré
+# ------------------------------------------------------
+p2 <- ggplot(df, aes(x = Mag.Type, y = Depth, color = Mag.Type)) +
+  geom_jitter(position = position_jitter(width = 0.15, height = 0), alpha = 0.7, size = 2) +
+  stat_summary(fun.data = mean_cl_normal, geom = "pointrange", size = 1) +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    axis.text.x = element_text(angle = 25, hjust = 1),
+    plot.title = element_text(face = "bold")
+  ) +
+  ggtitle("Dot")
+
+# ------------------------------------------------------
+# 3. Densité avec couleurs semi-transparentes et contours fins
+# ------------------------------------------------------
+p3 <- ggplot(df, aes(x = Depth, fill = Mag.Type)) +
+  geom_density(alpha = 0.4, color = "black", linewidth = 0.3) +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(face = "bold")
+  ) +
+  ggtitle("Density")
+
+# ------------------------------------------------------
+# 4. Combinaison propre et équilibrée
+# ------------------------------------------------------
+plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
+```
+```{r}
+#à modifier ne donne pas bien 
+p1 <- ggplot(df, aes(x = Volcanoes, y = Volume, color = Volcanoes)) +
+  geom_boxplot(alpha = 0, width = 0.4, outlier.shape = NA) +
+  stat_summary(fun = mean, geom = "point", shape = 16, size = 4, fill = "black") +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    axis.text.x = element_text(angle = 25, hjust = 1),
+    plot.title = element_text(face = "bold")
+  ) +
+  ggtitle("Boxplot")
+
+# ------------------------------------------------------
+# 2. Dotplot lisible et centré
+# ------------------------------------------------------
+p2 <- ggplot(df, aes(x = Volcanoes, y = Volume, color = Volcanoes)) +
+  geom_jitter(position = position_jitter(width = 0.15, height = 0), alpha = 0.7, size = 2) +
+  stat_summary(fun.data = mean_cl_normal, geom = "pointrange", size = 1) +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    axis.text.x = element_text(angle = 25, hjust = 1),
+    plot.title = element_text(face = "bold")
+  ) +
+  ggtitle("Dot")
+
+# ------------------------------------------------------
+# 3. Densité avec couleurs semi-transparentes et contours fins
+# ------------------------------------------------------
+p3 <- ggplot(df, aes(x = Volume, fill = Volcanoes)) +
+  geom_density(alpha = 0.4, color = "black", linewidth = 0.3) +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(face = "bold")
+  ) +
+  ggtitle("Density")
+
+# ------------------------------------------------------
+# 4. Combinaison propre et équilibrée
+# ------------------------------------------------------
+plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
+```
+graphique : VEI + volcanoes 
+```{r}
+ggplot (df, aes (x=VEI.approximatif)) +geom_bar (aes(fill = Volcanoes),position = "dodge")+
+  labs(
+    title = "Répartition des VEI en fonction des volcans",
+    x = "VEI",
+    y = "Nombre d'observations"
+  ) +
+  theme_minimal ()
+
 ```
 
 ```{r}
-leveneTest(Magnitude ~ Volcanoes, data = df)
-anova_volcan <- aov(Magnitude ~ Volcanoes, data = df)
-summary(anova_volcan)#pas terrible mais parler avec Julie 
-#demander à la prof si on peut faire une ancova  
+ggplot (df, aes (x=Mag.Type)) +geom_bar (aes(fill = Volcanoes),position = "dodge")+
+  labs(
+    title = "Répartition des Type de magma en fonction des volcans",
+    x = "VEI",
+    y = "Nombre d'observations"
+  ) +
+  theme_minimal ()
 
+```
+```{r}
+ggplot (df, aes (x=Classification)) +geom_bar (aes(fill = Volcanoes),position = "dodge")+
+  labs(
+    title = "Répartition des classifications en fonction des volcans",
+    x = "Classification",
+    y = "Nombre d'observations"
+  ) +
+  theme_minimal ()
+```
+
+```{r}
+ggplot (df, aes (x=Classification)) +geom_bar (aes(fill = Mag.Type), position = "dodge")+
+  labs(
+    title = "Répartition des types de magma en fonction des classifications",
+    x = "Classification",
+    y = "Nombre d'observations"
+  ) +
+  theme_minimal ()
+```
+
+# Analyse multivariée 
+
+```{r}
+ggplot(df, aes(x = Volcanoes, fill = Mag.Type)) +
+  geom_bar(position = "dodge") +
+  facet_wrap(~ Classification) +
+  theme_minimal() +
+  labs(
+    x = "Volcan",
+    y = "Nombre d’échantillons",
+    fill = "Type de magma",
+    title = "Répartition du type de magma selon le volcan et la classification"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 
