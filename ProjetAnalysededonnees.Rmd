@@ -32,7 +32,7 @@ L’objectif est de comprendre si il existe un **lien entre intensité de l’é
 ## Chargement et préparation des données
 
 ```{r}
-packages <- c("dplyr", "ggplot2", "tidyr","performance","car","maps","ggspatial","sf", "prettymapr","rnaturalearth","rnaturalearthdata","viridis","see","patchwork","geosphere","reshape2","cowplot","factoextra","FactoMineR","plotly")
+packages <- c("dplyr", "ggplot2", "tidyr","performance","car","maps","ggspatial","sf", "prettymapr","rnaturalearth","rnaturalearthdata","viridis","see","patchwork","geosphere","reshape2","cowplot","factoextra","FactoMineR","plotly","PerformanceAnalytics","ade4","pheatmap")
 
 installed_packages <- rownames(installed.packages())
 to_install <- packages[!(packages %in% installed_packages)]
@@ -813,6 +813,55 @@ test_chi2 <- chisq.test(tab)
 res.ca <- CA(tab, graph = FALSE)
 fviz_ca_biplot(res.ca, repel = TRUE)
 ```
+```{r}
+tab <- table(df$Volcanoes, df$Mag.Type)
+tab
+test_chi2 <- chisq.test(tab)
+#signifcatif car p-valeur <0.05
+
+res.ca <- CA(tab, graph = FALSE)
+fviz_ca_biplot(res.ca, repel = TRUE)
+```
+
+```{r}
+tab1 <- table(df$Classification, df$Mag.Type)
+test_chi2 <- chisq.test(tab1)
+res.ca1 <- CA(tab1, graph = FALSE)
+fviz_ca_biplot(res.ca1, repel = TRUE)
+```
+```{r}
+tab2 <- table(df$Classification, df$Volcanoes)
+tab2
+test_chi2 <- chisq.test(tab2)
+res.ca2 <- CA(tab2, graph = FALSE)
+fviz_ca_biplot(res.ca2, repel = TRUE)
+```
+
+
+```{r}
+acm_data <- df[, c("Classification", "Mag.Type", "Volcanoes", "VEI.approximatif")]
+res.mca <- MCA(acm_data, graph = FALSE)
+fviz_mca_biplot(res.mca, repel = TRUE,
+                title = "Analyse des correspondances multiples (ACM)")
+#au niveau des dimensions 1 et 2 pas énormément d'informations 
+```
+ACP 
+```{r}
+df_acp <- df[, c("Depth", "Magnitude", "Volume")]
+chart.Correlation(df_acp)
+```
+```{r}
+acp_sect <- dudi.pca(df_acp, scannf = FALSE, nf = ncol(df_acp))
+str(acp_sect)
+summary(acp_sect)#à analyser 
+sum(acp_sect$eig)
+barplot(acp_sect$eig, xlab="Axe", ylab="Valeur propre", names.arg = 1:acp_sect$rank) #permet d’afficher le screeplot en bâtonnet
+```
+```{r}
+pheatmap(as.matrix(acp_sect$co^2), cluster_cols=F,color = rev (hcl.colors(50, "Greens")))#acp$co^2 = pourcentage de la variable qui est expliquée par chaque CP
+```
+
+
 Clustering 
 ```{r}
 df_cluster <- df[, c("Depth", "Magnitude", "Volume")]
@@ -825,8 +874,8 @@ fviz_nbclust(df_cluster, kmeans, method = "wss") +
 ```{r}
 set.seed(42)  # pour reproductibilité
 
-km <- kmeans(df_cluster, centers = 3, nstart = 25)
-
+km <- kmeans(df_cluster, centers = 4, nstart = 25)
+#il faut justifier pourquoi 3 ou 4 groupes avec la techniques du coude (c'est le mieux)
 # Ajouter le cluster au jeu de données
 df$Cluster <- as.factor(km$cluster)
 ```
@@ -845,8 +894,9 @@ ggplot(df, aes(x = Magnitude, y = Depth, color = Cluster, size = Volume)) +
 ```{r}
 aggregate(df[, c("Volume", "Depth", "Magnitude")], by = list(df$Cluster), mean)
 ```
-```{r}
 
+
+```{r}
 
 plot_ly(df, x = ~Volume, y = ~Depth, z = ~Magnitude,
         color = ~Cluster, colors = "Set1",
