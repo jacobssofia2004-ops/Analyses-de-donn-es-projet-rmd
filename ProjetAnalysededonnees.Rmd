@@ -32,7 +32,7 @@ L’objectif est de comprendre si il existe un **lien entre intensité de l’é
 ## Chargement et préparation des données
 
 ```{r}
-packages <- c("dplyr", "ggplot2", "tidyr","performance","car","maps","ggspatial","sf", "prettymapr","rnaturalearth","rnaturalearthdata","viridis","see","patchwork","geosphere","reshape2","cowplot","factoextra","FactoMineR","plotly","PerformanceAnalytics","ade4","pheatmap")
+packages <- c("dplyr", "ggplot2", "tidyr","performance","car","maps","ggspatial","sf", "prettymapr","rnaturalearth","rnaturalearthdata","viridis","see","patchwork","geosphere","reshape2","cowplot","factoextra","FactoMineR","plotly","PerformanceAnalytics","ade4","pheatmap","ggsci")
 
 installed_packages <- rownames(installed.packages())
 to_install <- packages[!(packages %in% installed_packages)]
@@ -413,12 +413,12 @@ Cette analyse univarié a permis de déterminer l'allure de chacune des variable
 
 Lien entre la magnitude et la profondeur 
 ```{r}
-res <- lm(Magnitude~Depth,data=df)
-ggplot(df) +  geom_point(aes(x = Depth, y = Magnitude, color = Volcanoes), size = 3, alpha = 0.5) +
+
+ggplot(df) +  geom_point(aes(x = Magnitude, y = Depth), size = 1) +
   labs(
     title = "Distribution de la magnitude des volcans en fonction de la profondeur du magma",
-    x = "Profondeur (km)",
-    y = "Magnitude"
+    x = "Magnitude",
+    y = "Profondeur (km)"
   ) +
   theme_minimal ()
 
@@ -426,18 +426,12 @@ ggplot(df) +  geom_point(aes(x = Depth, y = Magnitude, color = Volcanoes), size 
 ```
 
 
-```{r}
-hist (df$Magnitude)
-hist (df$Depth)
-```
 
-pas relation linéaire entre les données donc pas possible de faire une étude anova par rapport à ça 
-
-les données ne suivent pas une loi normal donc pas possible de faire une anova 
 
 ```{r}
 anova_result <- aov(Depth ~ Magnitude, data = df)
-summary(anova_result)
+hist(anova_result$residuals)#les résidus ne sont pas distribué de manière normal
+
 
 ```
 normalement peut pas utiliser l'anova donc il faut utiliser un autre  test comme kruskal-wallis
@@ -451,6 +445,7 @@ kruskal.test(Depth ~ Magnitude, data = df)
 #Le test de Kruskal-Wallis est utilisé pour déterminer s'il existe des différences significatives entre les médianes de plusieurs groupes indépendants.
 #dans ce cas-ci il n'y a pas de différence significative entre les groupes de volcans et de magnitude en ce qui concerne la profondeur du magma.
 ```
+
 
 lien entre magnitude et le volume estimé 
 ```{r}
@@ -481,18 +476,18 @@ ggplot(df) +  geom_point(aes(x = log(Volume), y = Depth), size = 1) +
   ) +
   theme_minimal ()
 ```
-PAS DE TEST 
 
 
+```{r}
+anova_result <- aov(Depth ~ log(Volume), data = df)
+hist(anova_result$residuals)
+```
+Pas d'anova car les résidus ne sont pas distribués normalement. Utilisation du test de kruskal-wallis
 
-
-pour moi elles ne sont pas distibué normalement après cela se discute. Si on considère que cela est normal déjà on peut faire deux groupes et faire une anova à plusieurs variables 
+ 
 ```{r}
 var.test(df_faible$Magnitude, df_forte$Magnitude)#OK
 t.test (df_faible$Magnitude, df_forte$Magnitude, var.equal = TRUE)
-leveneTest(Magnitude ~ Volcanoes, data = df)
-anova_volcan <- aov(Magnitude ~ Volcanoes, data = df)
-summary(anova_volcan)  
 
 ```
 
@@ -510,9 +505,7 @@ p1 <- ggplot(df, aes(x = Volcanoes, y = Magnitude, color = Volcanoes)) +
   ) +
   ggtitle("Boxplot")
 
-# ------------------------------------------------------
-# 2. Dotplot lisible et centré
-# ------------------------------------------------------
+
 p2 <- ggplot(df, aes(x = Volcanoes, y = Magnitude, color = Volcanoes)) +
   geom_jitter(position = position_jitter(width = 0.15, height = 0), alpha = 0.7, size = 2) +
   stat_summary(fun.data = mean_cl_normal, geom = "pointrange", size = 1) +
@@ -525,9 +518,7 @@ p2 <- ggplot(df, aes(x = Volcanoes, y = Magnitude, color = Volcanoes)) +
   ) +
   ggtitle("Dot")
 
-# ------------------------------------------------------
-# 3. Densité avec couleurs semi-transparentes et contours fins
-# ------------------------------------------------------
+
 p3 <- ggplot(df, aes(x = Magnitude, fill = Volcanoes)) +
   geom_density(alpha = 0.4, color = "black", linewidth = 0.3) +
   theme_minimal(base_size = 14) +
@@ -537,9 +528,7 @@ p3 <- ggplot(df, aes(x = Magnitude, fill = Volcanoes)) +
   ) +
   ggtitle("Density")
 
-# ------------------------------------------------------
-# 4. Combinaison propre et équilibrée
-# ------------------------------------------------------
+
 plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
 ```
 
@@ -564,9 +553,7 @@ p1 <- ggplot(df, aes(x = Mag.Type, y = Magnitude, color = Mag.Type)) +
   ) +
   ggtitle("Boxplot")
 
-# ------------------------------------------------------
-# 2. Dotplot lisible et centré
-# ------------------------------------------------------
+
 p2 <- ggplot(df, aes(x = Mag.Type, y = Magnitude, color = Mag.Type)) +
   geom_jitter(position = position_jitter(width = 0.15, height = 0), alpha = 0.7, size = 2) +
   stat_summary(fun.data = mean_cl_normal, geom = "pointrange", size = 1) +
@@ -579,9 +566,7 @@ p2 <- ggplot(df, aes(x = Mag.Type, y = Magnitude, color = Mag.Type)) +
   ) +
   ggtitle("Dot")
 
-# ------------------------------------------------------
-# 3. Densité avec couleurs semi-transparentes et contours fins
-# ------------------------------------------------------
+
 p3 <- ggplot(df, aes(x = Magnitude, fill = Mag.Type)) +
   geom_density(alpha = 0.4, color = "black", linewidth = 0.3) +
   theme_minimal(base_size = 14) +
@@ -591,9 +576,7 @@ p3 <- ggplot(df, aes(x = Magnitude, fill = Mag.Type)) +
   ) +
   ggtitle("Density")
 
-# ------------------------------------------------------
-# 4. Combinaison propre et équilibrée
-# ------------------------------------------------------
+
 plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
 ```
 il n'y a pas une distribution normale de la donnée. Certains des types de magmas ne présentent qu'une seul variable. 
@@ -602,8 +585,9 @@ il n'y a pas une distribution normale de la donnée. Certains des types de magma
 
 leveneTest(Magnitude ~ Mag.Type, data = df)
 anova_magma <- aov(Magnitude ~ Mag.Type, data = df)
+hist(anova_magma$residuals)
 summary(anova_magma)
-TukeyHSD(anova_magma)
+#TukeyHSD(anova_magma)
 
 
 ```
@@ -622,9 +606,7 @@ p1 <- ggplot(df, aes(x = Classification, y = Depth, color = Classification)) +
   ) +
   ggtitle("Boxplot")
 
-# ------------------------------------------------------
-# 2. Dotplot lisible et centré
-# ------------------------------------------------------
+
 p2 <- ggplot(df, aes(x = Classification, y = Depth, color = Classification)) +
   geom_jitter(position = position_jitter(width = 0.15, height = 0), alpha = 0.7, size = 2) +
   stat_summary(fun.data = mean_cl_normal, geom = "pointrange", size = 1) +
@@ -637,9 +619,7 @@ p2 <- ggplot(df, aes(x = Classification, y = Depth, color = Classification)) +
   ) +
   ggtitle("Dot")
 
-# ------------------------------------------------------
-# 3. Densité avec couleurs semi-transparentes et contours fins
-# ------------------------------------------------------
+
 p3 <- ggplot(df, aes(x = Depth, fill = Classification)) +
   geom_density(alpha = 0.4, color = "black", linewidth = 0.3) +
   theme_minimal(base_size = 14) +
@@ -649,9 +629,7 @@ p3 <- ggplot(df, aes(x = Depth, fill = Classification)) +
   ) +
   ggtitle("Density")
 
-# ------------------------------------------------------
-# 4. Combinaison propre et équilibrée
-# ------------------------------------------------------
+
 plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
 ```
 ```{r}
@@ -667,9 +645,7 @@ p1 <- ggplot(df, aes(x = Mag.Type, y = Depth, color = Mag.Type)) +
   ) +
   ggtitle("Boxplot")
 
-# ------------------------------------------------------
-# 2. Dotplot lisible et centré
-# ------------------------------------------------------
+
 p2 <- ggplot(df, aes(x = Mag.Type, y = Depth, color = Mag.Type)) +
   geom_jitter(position = position_jitter(width = 0.15, height = 0), alpha = 0.7, size = 2) +
   stat_summary(fun.data = mean_cl_normal, geom = "pointrange", size = 1) +
@@ -682,9 +658,6 @@ p2 <- ggplot(df, aes(x = Mag.Type, y = Depth, color = Mag.Type)) +
   ) +
   ggtitle("Dot")
 
-# ------------------------------------------------------
-# 3. Densité avec couleurs semi-transparentes et contours fins
-# ------------------------------------------------------
 p3 <- ggplot(df, aes(x = Depth, fill = Mag.Type)) +
   geom_density(alpha = 0.4, color = "black", linewidth = 0.3) +
   theme_minimal(base_size = 14) +
@@ -694,13 +667,20 @@ p3 <- ggplot(df, aes(x = Depth, fill = Mag.Type)) +
   ) +
   ggtitle("Density")
 
-# ------------------------------------------------------
-# 4. Combinaison propre et équilibrée
-# ------------------------------------------------------
+
 plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
 ```
+
 ```{r}
-#à modifier ne donne pas bien 
+leveneTest(Depth ~ Mag.Type, data = df)
+anova_magma1 <- aov(Depth ~ Mag.Type, data = df)
+hist(anova_magma1$residuals)
+summary(anova_magma1)
+```
+
+
+```{r}
+
 p1 <- ggplot(df, aes(x = Volcanoes, y = Volume, color = Volcanoes)) +
   geom_boxplot(alpha = 0, width = 0.4, outlier.shape = NA) +
   stat_summary(fun = mean, geom = "point", shape = 16, size = 4, fill = "black") +
@@ -713,9 +693,7 @@ p1 <- ggplot(df, aes(x = Volcanoes, y = Volume, color = Volcanoes)) +
   ) +
   ggtitle("Boxplot")
 
-# ------------------------------------------------------
-# 2. Dotplot lisible et centré
-# ------------------------------------------------------
+
 p2 <- ggplot(df, aes(x = Volcanoes, y = Volume, color = Volcanoes)) +
   geom_jitter(position = position_jitter(width = 0.15, height = 0), alpha = 0.7, size = 2) +
   stat_summary(fun.data = mean_cl_normal, geom = "pointrange", size = 1) +
@@ -728,9 +706,7 @@ p2 <- ggplot(df, aes(x = Volcanoes, y = Volume, color = Volcanoes)) +
   ) +
   ggtitle("Dot")
 
-# ------------------------------------------------------
-# 3. Densité avec couleurs semi-transparentes et contours fins
-# ------------------------------------------------------
+
 p3 <- ggplot(df, aes(x = Volume, fill = Volcanoes)) +
   geom_density(alpha = 0.4, color = "black", linewidth = 0.3) +
   theme_minimal(base_size = 14) +
@@ -740,11 +716,18 @@ p3 <- ggplot(df, aes(x = Volume, fill = Volcanoes)) +
   ) +
   ggtitle("Density")
 
-# ------------------------------------------------------
-# 4. Combinaison propre et équilibrée
-# ------------------------------------------------------
+
 plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
 ```
+
+```{r}
+leveneTest(log(Volume) ~ Volcanoes, data = df)
+anova_magma2 <- aov(log(Volume) ~ Volcanoes, data = df)
+hist(anova_magma2$residuals)
+summary(anova_magma2)
+```
+
+
 graphique : VEI + volcanoes 
 ```{r}
 ggplot (df, aes (x=VEI.approximatif)) +geom_bar (aes(fill = Volcanoes),position = "dodge")+
@@ -802,6 +785,29 @@ ggplot(df, aes(x = Volcanoes, fill = Mag.Type)) +
   ) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+```{r}
+ggplot(df) +  geom_point(aes(x = Magnitude, y = Depth, color = Volcanoes), size = 1.5) +
+  labs(
+    title = "Distribution de la magnitude des volcans en fonction de la profondeur du magma",
+    x = "Magnitude",
+    y = "Profondeur (km)"
+  ) +
+  theme_minimal ()
+
+```
+
+```{r}
+ancova_interaction <- aov(Depth ~ Magnitude* Volcanoes, data = df)
+hist(ancova_interaction$residuals)
+summary(ancova_interaction)
+
+```
+```{r}
+ancova_additive <- aov(Depth~ Magnitude + Volcanoes, data = df)
+hist(ancova_additive$residuals)
+summary(ancova_additive)
+
+```
 
 
 ```{r}
@@ -837,7 +843,7 @@ res.ca2 <- CA(tab2, graph = FALSE)
 fviz_ca_biplot(res.ca2, repel = TRUE)
 ```
 
-
+ACM
 ```{r}
 acm_data <- df[, c("Classification", "Mag.Type", "Volcanoes", "VEI.approximatif")]
 res.mca <- MCA(acm_data, graph = FALSE)
@@ -846,12 +852,15 @@ fviz_mca_biplot(res.mca, repel = TRUE,
 #au niveau des dimensions 1 et 2 pas énormément d'informations 
 ```
 ACP 
+Pas énormément de pertinence étant donnée qu'il n'y a que 3 variables 
 ```{r}
-df_acp <- df[, c("Depth", "Magnitude", "Volume")]
-chart.Correlation(df_acp)
+df_acp <- df[, c("Depth", "Magnitude", "Volume","Volcanoes")]
+df_num <- df_acp %>%
+  select(where(is.numeric))
+chart.Correlation(df_num)
 ```
 ```{r}
-acp_sect <- dudi.pca(df_acp, scannf = FALSE, nf = ncol(df_acp))
+acp_sect <- dudi.pca(df_num, scannf = FALSE, nf = ncol(df_acp))
 str(acp_sect)
 summary(acp_sect)#à analyser 
 sum(acp_sect$eig)
@@ -860,6 +869,26 @@ barplot(acp_sect$eig, xlab="Axe", ylab="Valeur propre", names.arg = 1:acp_sect$r
 ```{r}
 pheatmap(as.matrix(acp_sect$co^2), cluster_cols=F,color = rev (hcl.colors(50, "Greens")))#acp$co^2 = pourcentage de la variable qui est expliquée par chaque CP
 ```
+```{r}
+s.corcircle (acp_sect$co, xax = 1, yax = 2, sub="Correlation selon le plan 1-2")
+```
+```{r}
+fviz_pca_biplot(acp_sect,
+                geom.ind = "point",          # uniquement des points
+                geom.ind.params = list(size = 2),  # taille fixe
+                col.ind = df_acp$Volcanoes,  # couleur selon volcan
+                fill.ind = df_acp$Volcanoes, # couleur intérieure (si shape 21)
+                palette = "jco",             # palette qualitative
+                pointshape = 21,             # cercles remplis
+                alpha.ind = 1,               # opacité fixe
+                col.var = "steelblue",       # vecteurs bleus
+                repel = TRUE,
+                legend.title = "Volcan",
+                title = "ACP : Biplot avec points de taille fixe")
+
+
+```
+
 
 
 Clustering 
