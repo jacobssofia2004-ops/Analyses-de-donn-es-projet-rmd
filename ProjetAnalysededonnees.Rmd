@@ -426,14 +426,19 @@ ggplot(df) +  geom_point(aes(x = Magnitude, y = Depth), size = 1) +
 ```
 
 
+normalement il n'est pas possible de faire une anova car des variables quantitatives et non quali
+```{r}
+hist(df$Depth)
+hist(df$Magnitude)
+cor(df$Magnitude, df$Depth, method = "spearman")#pas de corrélation entre les deux variables 
+```
 
 
 ```{r}
 anova_result <- aov(Depth ~ Magnitude, data = df)
 hist(anova_result$residuals)#les résidus ne sont pas distribué de manière normal
-
-
 ```
+Pas de test de kruskall-wallis car pas de variables catégorielles 
 normalement peut pas utiliser l'anova donc il faut utiliser un autre  test comme kruskal-wallis
 
 ```{r}
@@ -445,7 +450,6 @@ kruskal.test(Depth ~ Magnitude, data = df)
 #Le test de Kruskal-Wallis est utilisé pour déterminer s'il existe des différences significatives entre les médianes de plusieurs groupes indépendants.
 #dans ce cas-ci il n'y a pas de différence significative entre les groupes de volcans et de magnitude en ce qui concerne la profondeur du magma.
 ```
-
 
 lien entre magnitude et le volume estimé 
 ```{r}
@@ -476,13 +480,16 @@ ggplot(df) +  geom_point(aes(x = log(Volume), y = Depth), size = 1) +
   ) +
   theme_minimal ()
 ```
-
+pas d'anova 
 
 ```{r}
 anova_result <- aov(Depth ~ log(Volume), data = df)
 hist(anova_result$residuals)
+
+cor(log(df$Volume), df$Depth, method = "spearman")#pas de corrélation entre les deux variables)
 ```
 Pas d'anova car les résidus ne sont pas distribués normalement. Utilisation du test de kruskal-wallis
+
 
  
 ```{r}
@@ -536,6 +543,7 @@ Possible d'observer que certains groupes ont des distributions bimodal et non pa
 
 ```{r}
 anova_result <- aov(Magnitude ~ Volcanoes, data = df)
+hist(anova_result$residuals)
 summary(anova_result)
 ```
 pas de différence significative entre les magnitudes moyennes des différents volcans
@@ -589,7 +597,6 @@ hist(anova_magma$residuals)
 summary(anova_magma)
 #TukeyHSD(anova_magma)
 
-
 ```
 
 
@@ -632,6 +639,14 @@ p3 <- ggplot(df, aes(x = Depth, fill = Classification)) +
 
 plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
 ```
+```{r}
+leveneTest(Depth~ Classification, data = df)
+anova_magmad <- aov(Depth ~ Classification, data = df)
+hist(anova_magmad$residuals)
+summary(anova_magmad)
+```
+
+
 ```{r}
 p1 <- ggplot(df, aes(x = Mag.Type, y = Depth, color = Mag.Type)) +
   geom_boxplot(alpha = 0, width = 0.4, outlier.shape = NA) +
@@ -810,15 +825,25 @@ summary(ancova_additive)
 ```
 
 
+
 ```{r}
 tab <- table(df$Volcanoes, df$Mag.Type)
 tab
 test_chi2 <- chisq.test(tab)
 #signifcatif car p-valeur <0.05
+```
 
+```{r}
+tab1 <- table(df$Classification, df$Mag.Type)
+test_chi2 <- chisq.test(tab1)
+test_chi2
+```
+
+```{r}
 res.ca <- CA(tab, graph = FALSE)
 fviz_ca_biplot(res.ca, repel = TRUE)
 ```
+
 ```{r}
 tab <- table(df$Volcanoes, df$Mag.Type)
 tab
