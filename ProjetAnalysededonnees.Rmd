@@ -829,14 +829,22 @@ summary(ancova_additive)
 ```{r}
 tab <- table(df$Volcanoes, df$Mag.Type)
 tab
-test_chi2 <- chisq.test(tab)
+test_chi <- chisq.test(tab)
 #signifcatif car p-valeur <0.05
 ```
 
 ```{r}
 tab1 <- table(df$Classification, df$Mag.Type)
-test_chi2 <- chisq.test(tab1)
-test_chi2
+test_chi1 <- chisq.test(tab1)
+test_chi1#c'est pas mal 
+```
+```{r}
+tab2 <- table (df$Volcanoes,df$Classification)
+test_chi2 <- chisq.test(tab2)
+test_chi2#c'est de la merde 
+```
+```{r}
+
 ```
 
 ```{r}
