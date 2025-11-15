@@ -409,6 +409,15 @@ Le VEI est une échelle de 1 à 8 donnant l'intensité d'une éruption volcaniqu
 
 # Analyse bivariés
 
+*Attention*
+Pour les tests avec deux variables quantitatives ==> pas possible de faire un test d'anova ou un t.test. Il faut faire un test de corrélation 
+Pour les tests avec deux variables qualitatives ==> test du chi2
+Pour les test avec une variable qualitative et quantitative ==> test anova ou t.test
+*Attention à remettre en forme correctement*
+Pour le test d'anova ==> condition d'application il faut que les résidus soient distribués normalement. Vérifier l'indépendance des résidus, ainsi que l'homoscédasticité je pense. 
+Pour le t.test, il faut tester la variance. 
+Pour l'ANCOVA ce sont les mêmes conditions d'applications
+
 Cette analyse univarié a permis de déterminer l'allure de chacune des variables du jeu données. Il est a présent possible d'étudier des liens possibles entre ces différentes données. Tout d'abord, 
 
 Lien entre la magnitude et la profondeur 
@@ -786,6 +795,9 @@ ggplot (df, aes (x=Classification)) +geom_bar (aes(fill = Mag.Type), position = 
 ```
 
 # Analyse multivariée 
+*Attention*
+Pour faire des tests possible de faire ANCOVA pour quand deux variables quanti avec une variable quali 
+
 
 ```{r}
 ggplot(df, aes(x = Volcanoes, fill = Mag.Type)) +
@@ -844,9 +856,11 @@ test_chi2 <- chisq.test(tab2)
 test_chi2#c'est de la merde 
 ```
 ```{r}
-
+tab3 <- table (df$VEI.approximatif,df$Volcanoes)
+test_chi3 <- chisq.test(tab3)
+test_chi3#c'est de la merde
 ```
-
+## AFC
 ```{r}
 res.ca <- CA(tab, graph = FALSE)
 fviz_ca_biplot(res.ca, repel = TRUE)
@@ -876,7 +890,7 @@ res.ca2 <- CA(tab2, graph = FALSE)
 fviz_ca_biplot(res.ca2, repel = TRUE)
 ```
 
-ACM
+## ACM
 ```{r}
 acm_data <- df[, c("Classification", "Mag.Type", "Volcanoes", "VEI.approximatif")]
 res.mca <- MCA(acm_data, graph = FALSE)
@@ -884,7 +898,7 @@ fviz_mca_biplot(res.mca, repel = TRUE,
                 title = "Analyse des correspondances multiples (ACM)")
 #au niveau des dimensions 1 et 2 pas énormément d'informations 
 ```
-ACP 
+## ACP 
 Pas énormément de pertinence étant donnée qu'il n'y a que 3 variables 
 ```{r}
 df_acp <- df[, c("Depth", "Magnitude", "Volume","Volcanoes")]
@@ -924,7 +938,7 @@ fviz_pca_biplot(acp_sect,
 
 
 
-Clustering 
+## Clustering 
 ```{r}
 df_cluster <- df[, c("Depth", "Magnitude", "Volume")]
 fviz_nbclust(df_cluster, kmeans, method = "wss") +
@@ -967,4 +981,8 @@ plot_ly(df, x = ~Volume, y = ~Depth, z = ~Magnitude,
 
 ```
 
+*Possible de faire aussi des calculs pour estimé après c'est vraiment juste pour dire de l'avoir fait et pas vraiment une aide dans le travail en soit* 
 
+
+*Attention*
+demander à madame au prochain cours les petites questions que j'ai 
