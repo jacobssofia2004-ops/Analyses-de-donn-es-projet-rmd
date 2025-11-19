@@ -409,18 +409,11 @@ Le VEI est une échelle de 1 à 8 donnant l'intensité d'une éruption volcaniqu
 
 # Analyse bivariés
 
-*Attention*
-Pour les tests avec deux variables quantitatives ==> pas possible de faire un test d'anova ou un t.test. Il faut faire un test de corrélation 
-Pour les tests avec deux variables qualitatives ==> test du chi2
-Pour les test avec une variable qualitative et quantitative ==> test anova ou t.test
-*Attention à remettre en forme correctement*
-Pour le test d'anova ==> condition d'application il faut que les résidus soient distribués normalement. Vérifier l'indépendance des résidus, ainsi que l'homoscédasticité je pense. 
-Pour le t.test, il faut tester la variance. 
-Pour l'ANCOVA ce sont les mêmes conditions d'applications
+Cette analyse univarié a permis de déterminer l'allure de chacune des variables du jeu données. Il est a présent possible d'étudier des liens possibles entre ces différentes données.
 
-Cette analyse univarié a permis de déterminer l'allure de chacune des variables du jeu données. Il est a présent possible d'étudier des liens possibles entre ces différentes données. Tout d'abord, 
+## Lien entre deux variables quantitatives
 
-Lien entre la magnitude et la profondeur 
+### Lien entre la magnitude et la profondeur 
 ```{r}
 
 ggplot(df) +  geom_point(aes(x = Magnitude, y = Depth), size = 1) +
@@ -433,34 +426,19 @@ ggplot(df) +  geom_point(aes(x = Magnitude, y = Depth), size = 1) +
 
 
 ```
+Lorsque qur l'on regarde le graphique de la profondeur en fonction de la magnitude, cinq outlier sont visble ce qui confirme nos obeservation faites dans l'univariée avec des points de profondeur beaucoup trop importante.
+La deuxeme remaque est qu'il n'y a aucune corélation visible entre la profondeur et la magnétude.
+Nous allons quand même effectuer un test pour vérifeir notre hypothèse. Il n'est pas possible de faire une ANOVA car nous avons de variables quantitatives et l'ANOVA compare deux moyennes de deux goupres, hors ici nous cherchons à corréler deux varables. Nous effectuons donc un test de corrélagtion.
 
-
-normalement il n'est pas possible de faire une anova car des variables quantitatives et non quali
 ```{r}
 hist(df$Depth)
 hist(df$Magnitude)
 cor(df$Magnitude, df$Depth, method = "spearman")#pas de corrélation entre les deux variables 
 ```
 
+On choist un test de corrélation de Spearman car les données ne sont pas distribuées normalement (voir histogramme). Le coefficient de corrélation est de 0.32. C'est une corrélation positive mais la valuer reste faible car comprise entre 0.1 et 0.3 à plus ou moins 0.02, on a donc une faiblecorrélation entre la profondeur et la magnitude.
 
-```{r}
-anova_result <- aov(Depth ~ Magnitude, data = df)
-hist(anova_result$residuals)#les résidus ne sont pas distribué de manière normal
-```
-Pas de test de kruskall-wallis car pas de variables catégorielles 
-normalement peut pas utiliser l'anova donc il faut utiliser un autre  test comme kruskal-wallis
-
-```{r}
-#faire une anova avant de faire un test non paramétrique 
-kruskal.test(Depth ~ Volcanoes, data = df)
-kruskal.test(Depth ~ Magnitude, data = df)
-
-#ces deux test sont des test non paramétriques. Ils ne dépendent pas d'hypothèse sur la distribution des résidues, ni sur des paramètres particuliers comme la moyenne ou la variance. Ceux-ci sont basés sur des rangs.
-#Le test de Kruskal-Wallis est utilisé pour déterminer s'il existe des différences significatives entre les médianes de plusieurs groupes indépendants.
-#dans ce cas-ci il n'y a pas de différence significative entre les groupes de volcans et de magnitude en ce qui concerne la profondeur du magma.
-```
-
-lien entre magnitude et le volume estimé 
+### Lien entre magnitude et le volume estimé 
 ```{r}
 
 ggplot(df) +  geom_point(aes(x = Magnitude, y = log(Volume)), size = 1) +
@@ -475,11 +453,9 @@ summary(res)
 check_model(res)
 ```
 
+Graphiquement, on observe une corrélation positive entre la magnitude et le volume estimé. En effet, plus la magnitude est importante plus le volume estimé l'est également. Le modèle linéaire confirme cette observation avec un R2 de 1 ce qui est très élevé. Cependant, il existe une realtion théorique entre volume estimé et magnitude. La magnitude est calculer à parit du volume estimée sur le terrain. Ils sont donc mathéatiquement reléi l'un à l'autre et cette correlétion poistive ne reflete en rien un lien naturel entre les deux varibale mais traduits une simble équation mathématiques.
 
-pas possible de faire une interprétation car R2 = 1 car directement calculé par rapport à la magnitude. C'est pour cela que la relation VEI et magnitude n'est pas pertinente car celle-ci est également tiré de la magnitude
-
-
-Lien entre le volume et la profondeur 
+### Lien entre le volume et la profondeur 
 ```{r}
 ggplot(df) +  geom_point(aes(x = log(Volume), y = Depth), size = 1) +
   labs(
@@ -489,25 +465,18 @@ ggplot(df) +  geom_point(aes(x = log(Volume), y = Depth), size = 1) +
   ) +
   theme_minimal ()
 ```
-pas d'anova 
+
 
 ```{r}
-anova_result <- aov(Depth ~ log(Volume), data = df)
-hist(anova_result$residuals)
 
 cor(log(df$Volume), df$Depth, method = "spearman")#pas de corrélation entre les deux variables)
 ```
-Pas d'anova car les résidus ne sont pas distribués normalement. Utilisation du test de kruskal-wallis
+Il 
 
+## Lien entre variable qualitative et quantitative
 
- 
-```{r}
-var.test(df_faible$Magnitude, df_forte$Magnitude)#OK
-t.test (df_faible$Magnitude, df_forte$Magnitude, var.equal = TRUE)
+### Magnitude en fonction des volcans
 
-```
-
-Magnitude en fonction des volcans puis Magnitude en fonction du type de magma.
 ```{r}
 p1 <- ggplot(df, aes(x = Volcanoes, y = Magnitude, color = Volcanoes)) +
   geom_boxplot(alpha = 0, width = 0.4, outlier.shape = NA) +
@@ -548,14 +517,21 @@ p3 <- ggplot(df, aes(x = Magnitude, fill = Volcanoes)) +
 plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
 ```
 
-Possible d'observer que certains groupes ont des distributions bimodal et non pas juste normal 
+On remarque à nouveau que pour le Vésuve, on ne peut interpréter car on a qu'une seule varleur.
+Plusieurs remarques sont possibles. Tout d'abords, les magnitudes par volcans sont dépendantes, sinon l'ensebles des médiane serait alignées. De plus, médiane et moyenne ne sont pas égales, les magnitudes par volcans non donc pas une répatition modale. Enfin, les boxplots sont asymétique, on a donc une répartition non symétique de nos données.
+Il est possible d'observer que certains groupes ont des distributions bimodal et non pas juste normal. On a pas de distribution normale.
+
+Si on veut observer une différence entre les volcans par rapport à la magnitude, on effectuer un test non-paramétrique. Un ANOVA ne fonctionnerait pas ici car nous n'avons une répartition normale de nos donnée de magnitude.
 
 ```{r}
 anova_result <- aov(Magnitude ~ Volcanoes, data = df)
 hist(anova_result$residuals)
 summary(anova_result)
+hist(df$Magnitude)
 ```
 pas de différence significative entre les magnitudes moyennes des différents volcans
+
+### Magnitude en fonction du type de magma
 
 ```{r}
 p1 <- ggplot(df, aes(x = Mag.Type, y = Magnitude, color = Mag.Type)) +
@@ -795,7 +771,7 @@ ggplot (df, aes (x=Classification)) +geom_bar (aes(fill = Mag.Type), position = 
 ```
 
 # Analyse multivariée 
-*Attention*
+**Attention**
 Pour faire des tests possible de faire ANCOVA pour quand deux variables quanti avec une variable quali 
 
 
@@ -981,8 +957,8 @@ plot_ly(df, x = ~Volume, y = ~Depth, z = ~Magnitude,
 
 ```
 
-*Possible de faire aussi des calculs pour estimé après c'est vraiment juste pour dire de l'avoir fait et pas vraiment une aide dans le travail en soit* 
+**Possible de faire aussi des calculs pour estimé après c'est vraiment juste pour dire de l'avoir fait et pas vraiment une aide dans le travail en soit** 
 
 
-*Attention*
-demander à madame au prochain cours les petites questions que j'ai 
+**Attention**
+demander à madame au prochain cours les petites questions que j'ai au sujet des tests 
