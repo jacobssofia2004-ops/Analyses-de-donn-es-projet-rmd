@@ -32,7 +32,7 @@ L’objectif est de comprendre si il existe un **lien entre intensité de l’é
 ## Chargement et préparation des données
 
 ```{r}
-packages <- c("dplyr", "ggplot2", "tidyr","performance","car","maps","ggspatial","sf", "prettymapr","rnaturalearth","rnaturalearthdata","viridis","see","patchwork","geosphere","reshape2","cowplot","factoextra","FactoMineR","plotly","PerformanceAnalytics","ade4","pheatmap","ggsci")
+packages <- c("dplyr", "ggplot2", "tidyr","performance","car","maps","ggspatial","sf", "prettymapr","rnaturalearth","rnaturalearthdata","viridis","see","patchwork","geosphere","reshape2","cowplot","factoextra","FactoMineR","plotly","PerformanceAnalytics","ade4","pheatmap","ggsci","nnet")
 
 installed_packages <- rownames(installed.packages())
 to_install <- packages[!(packages %in% installed_packages)]
@@ -524,12 +524,20 @@ Il est possible d'observer que certains groupes ont des distributions bimodal et
 Si on veut observer une différence entre les volcans par rapport à la magnitude, on effectuer un test non-paramétrique. Un ANOVA ne fonctionnerait pas ici car nous n'avons une répartition normale de nos donnée de magnitude.
 
 ```{r}
-anova_result <- aov(Magnitude ~ Volcanoes, data = df)
-hist(anova_result$residuals)
-summary(anova_result)
-hist(df$Magnitude)
+aov1 <- aov(Magnitude ~ Volcanoes, data = df)
+opar <- par(mfrow = c(2, 2))
+plot(aov1)
+par(opar)
+```
+```{r}
+leveneTest(Magnitude ~ Volcanoes, data = df)#pas significatif donc cela veut dire que les variances ne sont pas hétéroscédastique, ce qui est étrange au vu du graphique précédent. Les résidus dévient également légèrement de la normalité
+```
+
+```{r}
+summary (aov1)
 ```
 pas de différence significative entre les magnitudes moyennes des différents volcans
+
 
 ### Magnitude en fonction du type de magma
 
@@ -575,16 +583,19 @@ plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
 il n'y a pas une distribution normale de la donnée. Certains des types de magmas ne présentent qu'une seul variable. 
 
 ```{r}
-
-leveneTest(Magnitude ~ Mag.Type, data = df)
 anova_magma <- aov(Magnitude ~ Mag.Type, data = df)
-hist(anova_magma$residuals)
-summary(anova_magma)
-#TukeyHSD(anova_magma)
+opar <- par(mfrow = c(2, 2))
+plot(anova_magma)
+par(opar)
+leveneTest(Magnitude ~ Mag.Type, data = df)
+#présence d'outlier au niveau de la normalité des résidus sinon au niveau des autres graphiques cela semble respecté les conditions de l'anova sont respectée
 
 ```
+```{r}
+summary (anova_magma)#significatif donc il y a bien une différence entre les moyennes des magnitudes des différents types de magma
+```
 
-
+### Profondeur en fonction des volcans
 ```{r}
 p1 <- ggplot(df, aes(x = Classification, y = Depth, color = Classification)) +
   geom_boxplot(alpha = 0, width = 0.4, outlier.shape = NA) +
@@ -624,14 +635,24 @@ p3 <- ggplot(df, aes(x = Depth, fill = Classification)) +
 
 plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
 ```
+Graphiquement, au niveau des boxplots il n'est pas possible d'observer une différence entre les différents types de magma 
 ```{r}
+anova_clas <- aov(Depth ~ Classification, data = df)
+opar <- par(mfrow = c(2, 2))
+plot(anova_clas)
+par(opar)
 leveneTest(Depth~ Classification, data = df)
-anova_magmad <- aov(Depth ~ Classification, data = df)
-hist(anova_magmad$residuals)
-summary(anova_magmad)
+
 ```
+Les conditions de l'anova ne sont pas respectées, les résidus ne sont pas normalement distribués. Certaines des valerus atteignes presque la Cook distance. 
+Il n'est ainsi pas possible de réaliser l'anova mais il est possible de réaliser un autre test qui lui est non paramétriques. Il s'agit du test Kruskall-walis 
+```{r}
+kruskal.test(Depth ~ Classification, data = df)
+```
+Le test de kruskal-wallis est signifcatif. Il faut préciser est sensible au différence de distributions donc si celles-ci sont fortement différentes comme c'est le cas ici il est possible qu'il n'y est pas uniquement une différence au niveau des médianes. 
 
 
+### Profondeur en fonction du type de magma
 ```{r}
 p1 <- ggplot(df, aes(x = Mag.Type, y = Depth, color = Mag.Type)) +
   geom_boxplot(alpha = 0, width = 0.4, outlier.shape = NA) +
@@ -672,13 +693,24 @@ plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
 ```
 
 ```{r}
+
+anova_mgd <- aov(Depth ~ Mag.Type, data = df)
+opar <- par(mfrow = c(2, 2))
+plot(anova_mgd)
+par(opar)
+
 leveneTest(Depth ~ Mag.Type, data = df)
-anova_magma1 <- aov(Depth ~ Mag.Type, data = df)
-hist(anova_magma1$residuals)
-summary(anova_magma1)
+
 ```
+Les conditions de l'anova ne sont pas respectées, il y a la présence de quatres outliers qui jouent un role important de levier. 
+
+```{r}
+kruskal.test(Depth ~ Mag.Type, data = df)
+```
+le test de kruskal-wallis n'est pas significatif. Il n'y a donc pas de différence entre les profondeurs moyennes des différents types de magma.
 
 
+### Volume estimé en fonction des volcans
 ```{r}
 
 p1 <- ggplot(df, aes(x = Volcanoes, y = Volume, color = Volcanoes)) +
@@ -721,14 +753,22 @@ plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
 ```
 
 ```{r}
+
+anova_volu <- aov(log(Volume) ~ Volcanoes, data = df)
+opar <- par(mfrow = c(2, 2))
+plot(anova_volu)
+par(opar)
 leveneTest(log(Volume) ~ Volcanoes, data = df)
-anova_magma2 <- aov(log(Volume) ~ Volcanoes, data = df)
-hist(anova_magma2$residuals)
-summary(anova_magma2)
 ```
+identique que la magnitude car directement extrapolé de ça 
+```{r}
+summary(anova_volu)
+```
+pas de différence significative entre les volumes moyens des différents volcans
 
+## Lien entre deux variables qualitatives
 
-graphique : VEI + volcanoes 
+### Répartition du VEI en fonction des volcans
 ```{r}
 ggplot (df, aes (x=VEI.approximatif)) +geom_bar (aes(fill = Volcanoes),position = "dodge")+
   labs(
@@ -739,27 +779,63 @@ ggplot (df, aes (x=VEI.approximatif)) +geom_bar (aes(fill = Volcanoes),position 
   theme_minimal ()
 
 ```
+```{r}
+tabVEI <- table (df$VEI.approximatif,df$Volcanoes)
+chisq.test(tabVEI)
 
+```
+test du chi 2 pas significatif car p-valeur > 0.05. Cela veut dire qu'il n'y a pas de relation significatif entre le VEI et les volcans 
+
+### Répartition du type de magma en fonction des volcans
 ```{r}
 ggplot (df, aes (x=Mag.Type)) +geom_bar (aes(fill = Volcanoes),position = "dodge")+
   labs(
     title = "Répartition des Type de magma en fonction des volcans",
-    x = "VEI",
+    x = "Type de magma",
     y = "Nombre d'observations"
   ) +
   theme_minimal ()
 
 ```
 ```{r}
-ggplot (df, aes (x=Classification)) +geom_bar (aes(fill = Volcanoes),position = "dodge")+
-  labs(
-    title = "Répartition des classifications en fonction des volcans",
-    x = "Classification",
-    y = "Nombre d'observations"
-  ) +
-  theme_minimal ()
+tab <- table(df$Volcanoes, df$Mag.Type)
+tab
+chisq.test(tab)
+#signifcatif car p-valeur <0.05
 ```
 
+
+```{r}
+res.ca <- CA(tab, graph = FALSE)
+
+fviz_screeplot(res.ca, addlabels = TRUE)
+
+```
+
+
+```{r}
+
+fviz_contrib(res.ca, choice = "row", axes = 1)
+fviz_contrib(res.ca, choice = "col", axes = 1)
+fviz_contrib(res.ca, choice = "row", axes = 2)
+fviz_contrib(res.ca, choice = "col", axes = 2)
+
+```
+```{r}
+fviz_ca_biplot(
+  res.ca,
+  label = "all",
+  repel = TRUE,
+  col.row = "cos2",
+  col.col = "cos2",
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+)
+
+
+```
+
+
+### Répartition du type de magma en fonction des classifications
 ```{r}
 ggplot (df, aes (x=Classification)) +geom_bar (aes(fill = Mag.Type), position = "dodge")+
   labs(
@@ -770,11 +846,42 @@ ggplot (df, aes (x=Classification)) +geom_bar (aes(fill = Mag.Type), position = 
   theme_minimal ()
 ```
 
+```{r}
+tabmg <- table(df$Classification, df$Mag.Type)
+chisq.test(tabmg)
+
+```
+```{r}
+res.ca2 <- CA(tabmg, graph = FALSE)
+```
+
+```{r}
+fviz_screeplot(res.ca2, addlabels = TRUE)
+```
+```{r}
+
+fviz_contrib(res.ca2, choice = "row", axes = 1)
+fviz_contrib(res.ca2, choice = "col", axes = 1)
+fviz_contrib(res.ca2, choice = "row", axes = 2)
+fviz_contrib(res.ca2, choice = "col", axes = 2)
+```
+
+```{r}
+fviz_ca_biplot(
+  res.ca2,
+  label = "all",
+  repel = TRUE,
+  col.row = "cos2",
+  col.col = "cos2",
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+)
+
+
+```
+
 # Analyse multivariée 
-**Attention**
-Pour faire des tests possible de faire ANCOVA pour quand deux variables quanti avec une variable quali 
-
-
+## Représentation graphiques 
+### Répartition du type de magma selon le volcan et la classification
 ```{r}
 ggplot(df, aes(x = Volcanoes, fill = Mag.Type)) +
   geom_bar(position = "dodge") +
@@ -788,6 +895,8 @@ ggplot(df, aes(x = Volcanoes, fill = Mag.Type)) +
   ) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+### Répartitio de la magnitude en fonction de la profondeur et des volcans
 ```{r}
 ggplot(df) +  geom_point(aes(x = Magnitude, y = Depth, color = Volcanoes), size = 1.5) +
   labs(
@@ -799,77 +908,31 @@ ggplot(df) +  geom_point(aes(x = Magnitude, y = Depth, color = Volcanoes), size 
 
 ```
 
-```{r}
-ancova_interaction <- aov(Depth ~ Magnitude* Volcanoes, data = df)
-hist(ancova_interaction$residuals)
-summary(ancova_interaction)
-
-```
-```{r}
-ancova_additive <- aov(Depth~ Magnitude + Volcanoes, data = df)
-hist(ancova_additive$residuals)
-summary(ancova_additive)
-
-```
-
-
-
-```{r}
-tab <- table(df$Volcanoes, df$Mag.Type)
-tab
-test_chi <- chisq.test(tab)
-#signifcatif car p-valeur <0.05
-```
-
-```{r}
-tab1 <- table(df$Classification, df$Mag.Type)
-test_chi1 <- chisq.test(tab1)
-test_chi1#c'est pas mal 
-```
-```{r}
-tab2 <- table (df$Volcanoes,df$Classification)
-test_chi2 <- chisq.test(tab2)
-test_chi2#c'est de la merde 
-```
-```{r}
-tab3 <- table (df$VEI.approximatif,df$Volcanoes)
-test_chi3 <- chisq.test(tab3)
-test_chi3#c'est de la merde
-```
-## AFC
-```{r}
-res.ca <- CA(tab, graph = FALSE)
-fviz_ca_biplot(res.ca, repel = TRUE)
-```
-
-```{r}
-tab <- table(df$Volcanoes, df$Mag.Type)
-tab
-test_chi2 <- chisq.test(tab)
-#signifcatif car p-valeur <0.05
-
-res.ca <- CA(tab, graph = FALSE)
-fviz_ca_biplot(res.ca, repel = TRUE)
-```
-
-```{r}
-tab1 <- table(df$Classification, df$Mag.Type)
-test_chi2 <- chisq.test(tab1)
-res.ca1 <- CA(tab1, graph = FALSE)
-fviz_ca_biplot(res.ca1, repel = TRUE)
-```
-```{r}
-tab2 <- table(df$Classification, df$Volcanoes)
-tab2
-test_chi2 <- chisq.test(tab2)
-res.ca2 <- CA(tab2, graph = FALSE)
-fviz_ca_biplot(res.ca2, repel = TRUE)
-```
-
 ## ACM
 ```{r}
 acm_data <- df[, c("Classification", "Mag.Type", "Volcanoes", "VEI.approximatif")]
 res.mca <- MCA(acm_data, graph = FALSE)
+
+```
+
+```{r}
+fviz_screeplot(res.mca, addlabels = TRUE)
+```
+```{r}
+fviz_mca_var(
+  res.mca,
+  repel = TRUE
+)
+```
+```{r}
+fviz_contrib(res.mca, choice = "var", axes = 1)
+fviz_contrib(res.mca, choice = "var", axes = 2)
+
+```
+
+
+```{r}
+
 fviz_mca_biplot(res.mca, repel = TRUE,
                 title = "Analyse des correspondances multiples (ACM)")
 #au niveau des dimensions 1 et 2 pas énormément d'informations 
@@ -882,6 +945,7 @@ df_num <- df_acp %>%
   select(where(is.numeric))
 chart.Correlation(df_num)
 ```
+
 ```{r}
 acp_sect <- dudi.pca(df_num, scannf = FALSE, nf = ncol(df_acp))
 str(acp_sect)
@@ -889,12 +953,15 @@ summary(acp_sect)#à analyser
 sum(acp_sect$eig)
 barplot(acp_sect$eig, xlab="Axe", ylab="Valeur propre", names.arg = 1:acp_sect$rank) #permet d’afficher le screeplot en bâtonnet
 ```
+
 ```{r}
 pheatmap(as.matrix(acp_sect$co^2), cluster_cols=F,color = rev (hcl.colors(50, "Greens")))#acp$co^2 = pourcentage de la variable qui est expliquée par chaque CP
 ```
+
 ```{r}
 s.corcircle (acp_sect$co, xax = 1, yax = 2, sub="Correlation selon le plan 1-2")
 ```
+
 ```{r}
 fviz_pca_biplot(acp_sect,
                 geom.ind = "point",          # uniquement des points
@@ -914,7 +981,7 @@ fviz_pca_biplot(acp_sect,
 
 
 
-## Clustering 
+# Clustering 
 ```{r}
 df_cluster <- df[, c("Depth", "Magnitude", "Volume")]
 fviz_nbclust(df_cluster, kmeans, method = "wss") +
@@ -957,8 +1024,8 @@ plot_ly(df, x = ~Volume, y = ~Depth, z = ~Magnitude,
 
 ```
 
-**Possible de faire aussi des calculs pour estimé après c'est vraiment juste pour dire de l'avoir fait et pas vraiment une aide dans le travail en soit** 
+## Equation logistique 
+```{r}
+df_logit <- df[, c("Depth", "Magnitude", "Volume", "Volcanoes")]
+```
 
-
-**Attention**
-demander à madame au prochain cours les petites questions que j'ai au sujet des tests 
