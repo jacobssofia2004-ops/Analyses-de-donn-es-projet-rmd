@@ -1027,5 +1027,17 @@ plot_ly(df, x = ~Volume, y = ~Depth, z = ~Magnitude,
 ## Equation logistique 
 ```{r}
 df_logit <- df[, c("Depth", "Magnitude", "Volume", "Volcanoes")]
+str(df_logit)
+model <- multinom(Volcanoes ~ Depth + Magnitude + Volume, data = df_logit)
+summary(model)
+
+```
+```{r}
+
+mod_mult <- multinom(Mag.Type ~ Depth + Magnitude, data = df)
+summary(mod_mult)
+
+exp(coef(mod_mult))   # odds ratios
+
 ```
 
