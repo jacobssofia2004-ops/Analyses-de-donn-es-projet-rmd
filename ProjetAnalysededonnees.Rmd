@@ -50,6 +50,13 @@ invisible(lapply(packages, function(pkg) {
 ```
 
 ```{r}
+###library(esquisse)
+esquisse::esquisser()###
+```
+
+
+
+```{r}
 df <- read.csv("DataR.csv", sep = ";")#importation des données
 str(df)
 #modification des types de variables 
@@ -562,6 +569,15 @@ Le summary de l'ANOVA, donne une valeur de p-value de 0.264. Celle-ci n'est pas 
 
 ### Magnitude en fonction du type de magma
 
+Le lien entre la magnitude et le type de magma peut également être étudié. 
+==> Pour MBa et MR, il n'y a qu'une seule valeur de magnitude
+==> Ma présente les magnitudes les plus élevées
+==> MB, MB-MA, ML ont des magnitudes plus et similaire entre elles
+
+Au niveau du graphique de densité, il est possible de voir que : 
+ ==> MA présente une distribution qui est binomiale mais la plupart de l'information se trouve quand même entre 4 et 5 au niveau des magnitudes
+ 
+==> MBa,MB,ML la distribution est bi-nomiale
 
 
 ```{r}
@@ -603,8 +619,11 @@ p3 <- ggplot(df, aes(x = Magnitude, fill = Mag.Type)) +
 
 plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
 ```
-Il n'y a pas une distribution normale de la donnée. Certains des types de magmas ne présentent qu'une seul variable. 
 
+L'ANOVA doit ainsi respecter différents critères. Dans ce cas-ci : 
+  L'homoscédadasticité est respectée, il est possible de voir que la ligne rouge sur le graphique est presque à l'horizontale 
+  La normalité des résidus est globalement respectée. Cependant, certaines valeurs sont fortement éloignées de la droite centrale comme le 20 et le 42. 
+  Au niveau du quatrième graphique, l'ensemble des donnée située dans les bornes de la distance cook. Cependant, les valeurs 20, 40 et 42 sont tout de même proche de ces extrémités. Cela peut causer un effet de levier. 
 ```{r}
 anova_magma <- aov(Magnitude ~ Mag.Type, data = df)
 opar <- par(mfrow = c(2, 2))
@@ -614,11 +633,16 @@ leveneTest(Magnitude ~ Mag.Type, data = df)
 #présence d'outlier au niveau de la normalité des résidus sinon au niveau des autres graphiques cela semble respecté les conditions de l'anova sont respectée
 
 ```
+L'ANOVA est ainsi réalisée, et celle-ci donne une valeur significative (p-valeur<0.05). Il y a ainsi une différences entre les différents types de magmas au niveau de la magnitude. 
+
+
 ```{r}
 summary (anova_magma)#significatif donc il y a bien une différence entre les moyennes des magnitudes des différents types de magma
 ```
 
 ### Profondeur en fonction des volcans
+
+
 ```{r}
 p1 <- ggplot(df, aes(x = Classification, y = Depth, color = Classification)) +
   geom_boxplot(alpha = 0, width = 0.4, outlier.shape = NA) +
@@ -842,7 +866,11 @@ chisq.test(tab)
 #signifcatif car p-valeur <0.05
 ```
 ### ACF
-Une ACF est une analyse factorielle des correspondances. Cela  
+Une ACF est une analyse factorielle des correspondances. Cela  permet d'analyser la relation entre deux variables qualitatives. Il est ainsi important qu'il est la présence d'une relation entre les deux. C'est pour cela que l'AFC est réalisé à partir des variables Volcanoes et Mag.Type. 
+
+Le but de l'AFC est de réduire la dimensionnalité des données tout en gardant l'écart d'indépendance entre les variables. 
+
+Afin de pouvoir savoir le nombres d'axes qu'il faut retenir, un scree plot est réalisé. Celui-ci permet d'observer que ce sont bien les deux premiers axes qui contiennent toute l'information (~99%).
 
 ```{r}
 res.ca <- CA(tab, graph = FALSE)
@@ -850,7 +878,7 @@ res.ca <- CA(tab, graph = FALSE)
 fviz_screeplot(res.ca, addlabels = TRUE)
 
 ```
-
+Il est également intéressant de regarder quelles variables contribuents le plus à quels axes
 
 ```{r}
 
@@ -860,6 +888,8 @@ fviz_contrib(res.ca, choice = "row", axes = 2)
 fviz_contrib(res.ca, choice = "col", axes = 2)
 
 ```
+
+Les graphiques réalisés précédement peuvent être également vu de la façon suivante. En axe des X il y a la dimension 1 et en axe des deux la dimension deux 
 ```{r}
 fviz_ca_biplot(
   res.ca,
@@ -875,6 +905,8 @@ fviz_ca_biplot(
 
 
 ### Répartition du type de magma en fonction des classifications
+
+
 ```{r}
 ggplot (df, aes (x=Classification)) +geom_bar (aes(fill = Mag.Type), position = "dodge")+
   labs(
@@ -884,7 +916,7 @@ ggplot (df, aes (x=Classification)) +geom_bar (aes(fill = Mag.Type), position = 
   ) +
   theme_minimal ()
 ```
-
+Comme pour le graphique précédent, il faut réaliser un test chi-deux pour savoir si il est pertinant ou non de faire une AFC
 ```{r}
 tabmg <- table(df$Classification, df$Mag.Type)
 chisq.test(tabmg)
@@ -921,6 +953,9 @@ fviz_ca_biplot(
 # Analyse multivariée 
 ## Représentation graphiques 
 ### Répartition du type de magma selon le volcan et la classification
+
+
+
 ```{r}
 ggplot(df, aes(x = Volcanoes, fill = Mag.Type)) +
   geom_bar(position = "dodge") +
@@ -948,6 +983,7 @@ ggplot(df) +  geom_point(aes(x = Magnitude, y = Depth, color = Volcanoes), size 
 ```
 
 ## ACM
+
 ```{r}
 acm_data <- df[, c("Classification", "Mag.Type", "Volcanoes", "VEI.approximatif")]
 res.mca <- MCA(acm_data, graph = FALSE)
@@ -960,7 +996,8 @@ fviz_screeplot(res.mca, addlabels = TRUE)
 ```{r}
 fviz_mca_var(
   res.mca,
-  repel = TRUE
+  repel = TRUE,
+  col.var = "cos2" , gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07")  # colorer les variables selon leur cos²
 )
 ```
 ```{r}
@@ -970,12 +1007,6 @@ fviz_contrib(res.mca, choice = "var", axes = 2)
 ```
 
 
-```{r}
-
-fviz_mca_biplot(res.mca, repel = TRUE,
-                title = "Analyse des correspondances multiples (ACM)")
-#au niveau des dimensions 1 et 2 pas énormément d'informations 
-```
 ## ACP 
 Pas énormément de pertinence étant donnée qu'il n'y a que 3 variables 
 ```{r}
@@ -984,6 +1015,9 @@ df_num <- df_acp %>%
   select(where(is.numeric))
 chart.Correlation(df_num)
 ```
+
+
+
 
 ```{r}
 acp_sect <- dudi.pca(df_num, scannf = FALSE, nf = ncol(df_acp))
