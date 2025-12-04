@@ -1041,25 +1041,13 @@ L'ACM est une analyse en composantes multiples. Celle-ci permet d'analyser les r
 ```{r}
 acm_data <- df[, c("Classification", "Mag.Type", "Volcanoes")]
 res.mca <- MCA(acm_data, graph = FALSE)
-
 ```
 
-Le sreeplot permet d'observer que les deux premières dimensions reprennent environ 70% de la variabilité totale.
+Le sreeplot permet d'observer qu'il faut 10 composantes principales pour expliquer 100% de la variance. 
 
 ```{r}
 fviz_screeplot(res.mca, addlabels = TRUE)
 ```
-
-
-```{r}
-fviz_mca_var(
-  res.mca,
-  repel = TRUE,
-  col.var = "cos2" , gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07")  # colorer les variables selon leur cos²
-)
-
-```
-
 
 ```{r}
 fviz_contrib(res.mca, choice = "var", axes = 1)
@@ -1067,11 +1055,21 @@ fviz_contrib(res.mca, choice = "var", axes = 2)
 
 ```
 
-### Répartitio de la magnitude en fonction de la profondeur et des volcans
+Un biplot peut également être réaliser pour l'ACM. Avant toute chose, il est interessant de regarder que l'échelle au niveau du cos2 n'est pas du tout la même que précédement. Les valeurs ici sont beaucoup plus faible. 
 
-La relation entre la magnitude et la profondeur en fonction des volcans. 
 
-Il n'y a pas de relation de linéarité. 
+
+```{r}
+fviz_mca_var(
+  res.mca,
+  repel = TRUE,
+  col.var = "cos2" , gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"))
+
+```
+
+### Répartition de la magnitude en fonction de la profondeur et des volcans
+
+ 
 ```{r}
 ggplot(df) +  geom_point(aes(x = Magnitude, y = Depth, color = Volcanoes), size = 1.5) +
   labs(
@@ -1086,7 +1084,11 @@ ggplot(df) +  geom_point(aes(x = Magnitude, y = Depth, color = Volcanoes), size 
 
 
 ## ACP 
-Pas énormément de pertinence étant donnée qu'il n'y a que 3 variables 
+
+L'ACP est une analyse en composantes principales. Celle-ci permet d'analyser les relations entre plusieurs variables quantitatives. Ici, l'ACP est réalisée à partir des variables Depth, Magnitude et Volume. 
+
+Une matrice de corrélation est réalisée afin d'observer les relations entre les différentes variables quantitatives. Il est possible d'observer comme précédement qu'une forte corrélation positive exciste entre la magntiude et le volume car celui-ci est calculé à partir de la magnitude. En ce qui concerne le lien entre la profondeur et la magnitude, la corrélation est moins importante mais tout de même précente. 
+
 ```{r}
 df_acp <- df[, c("Depth", "Magnitude", "Volume","Volcanoes")]
 df_num <- df_acp %>%
@@ -1094,19 +1096,18 @@ df_num <- df_acp %>%
 chart.Correlation(df_num)
 ```
 
-
+Il y a trois variables, il y a ainsi trois composantes principales. Le scree plot permet d'observer que les deux premières composantes gardent 89,6% de la variabilité totale. 
 
 
 ```{r}
 acp_sect <- dudi.pca(df_num, scannf = FALSE, nf = ncol(df_acp))
-str(acp_sect)
-summary(acp_sect)#à analyser 
-sum(acp_sect$eig)
-barplot(acp_sect$eig, xlab="Axe", ylab="Valeur propre", names.arg = 1:acp_sect$rank) #permet d’afficher le screeplot en bâtonnet
+fviz_screeplot(acp_sect, addlabels = TRUE)
 ```
-
+Le graphique de contribution permet d'observer quelles variables contribuent le plus à chaque axe : 
+- Les variables Magntiude et Volume contribuent fortement à la première dimension 
+- La profondeur contribue plus à la deuxième. 
 ```{r}
-pheatmap(as.matrix(acp_sect$co^2), cluster_cols=F,color = rev (hcl.colors(50, "Greens")))#acp$co^2 = pourcentage de la variable qui est expliquée par chaque CP
+pheatmap(as.matrix(acp_sect$co^2), cluster_cols=F,color = rev (hcl.colors(50, "Greens")))
 ```
 
 ```{r}
