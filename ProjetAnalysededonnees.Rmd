@@ -938,7 +938,7 @@ fviz_ca_biplot(
 
 - ML apparait uniquement dans la classification des volcans explosifs
 
--MB-MA et MR ne sont pas fortement représentés
+- MB-MA et MR ne sont pas fortement représentés
 
 ```{r}
 ggplot (df, aes (x=Classification)) +geom_bar (aes(fill = Mag.Type), position = "dodge")+
@@ -955,13 +955,22 @@ tabmg <- table(df$Classification, df$Mag.Type)
 chisq.test(tabmg)
 
 ```
-
+### AFC
+L'AFC est réalisée à partir des variables Classification et Mag.Type. Un scree plot est réalisé afin de savoir quelle composante principale prend en charge le plus de variabilité. Les deux premières composantes prennent 100% de la variabilité. 
 
 ```{r}
 res.ca2 <- CA(tabmg, graph = FALSE)
 fviz_screeplot(res.ca2, addlabels = TRUE)
 ```
+Pour la première dimension : 
 
+- La classification qui contribuent le plus sont Vulcanien 
+- Le type de magmas qui contribuent est MA
+
+Pour la deuxième dimension : 
+
+- Les classifications qui contribuent le plus sont Strombolien/Vulcanien et Hawaiien/Strombolien 
+- Les types de magmas qui contribuent le plus sont MB-MA, ML, MR
 ```{r}
 
 fviz_contrib(res.ca2, choice = "row", axes = 1)
@@ -969,6 +978,17 @@ fviz_contrib(res.ca2, choice = "col", axes = 1)
 fviz_contrib(res.ca2, choice = "row", axes = 2)
 fviz_contrib(res.ca2, choice = "col", axes = 2)
 ```
+Le biplot permet de visualiser les relations entre les modalités des deux variables.I Il montre :
+
+- l'ensemble des variables sont bien représentées sauf Vulcanien/Plinien qui a un cos 2 inférieur à 0.9975. 
+
+- Séparation nette entre la classification des volcans plus et moins exploisifs (Dim 1)
+
+- MA est associée aux volcans plus explosifs (Vulcanien)
+
+- Séparation au niveau des types Strombolien/Vulcanien et Hawaien/Strombolien (Dim 2) 
+
+- MB-MA, ML, MR et MBa sont associés aux volcans moins explosifs (Hawaien/Strombolien)
 
 ```{r}
 fviz_ca_biplot(
@@ -986,10 +1006,19 @@ fviz_ca_biplot(
 # Analyse multivariée 
 
 Précédement, ce sont les analyses avec une pour deux variables qui était étudié. Il est pourtant également d'étudier les relations entre plus de trois variables différentes. 
+
 ## Représentation graphiques 
 ### Répartition du type de magma selon le volcan et la classification
 
-Le graphique montre larépartition des types de magmas en fonction du volcans, des laves ainsi que la classification. 
+Le graphique montre la répartition des types de magmas en fonction du volcans, des laves ainsi que la classification. Ce graphique permet d'observer : 
+
+- Ma est le type de magma le plus fréquent que nivau de la classification Vulcanien au niveau des différents volcans 
+
+- Nysiros est le seul volcan qui présente un comportement de type Vulcanien/Plinien 
+
+- les types d'éruption les plus fréquent sont Hawaien/Strombolien et Vulcanien. 
+
+- ML (magma latitique) n'apparait que dans la classificition Hawaien/Strombalien et au niveau de Santorin et un peu Nisyros.
 
 ```{r}
 ggplot(df, aes(x = Volcanoes, fill = Mag.Type)) +
@@ -1003,6 +1032,39 @@ ggplot(df, aes(x = Volcanoes, fill = Mag.Type)) +
     title = "Répartition du type de magma selon le volcan et la classification"
   ) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## ACM
+
+L'ACM est une analyse en composantes multiples. Celle-ci permet d'analyser les relations entre plusieurs variables qualitatives. Ici, l'ACM est réalisée à partir des variables Classification, Mag.Type, Volcanoes.
+
+```{r}
+acm_data <- df[, c("Classification", "Mag.Type", "Volcanoes")]
+res.mca <- MCA(acm_data, graph = FALSE)
+
+```
+
+Le sreeplot permet d'observer que les deux premières dimensions reprennent environ 70% de la variabilité totale.
+
+```{r}
+fviz_screeplot(res.mca, addlabels = TRUE)
+```
+
+
+```{r}
+fviz_mca_var(
+  res.mca,
+  repel = TRUE,
+  col.var = "cos2" , gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07")  # colorer les variables selon leur cos²
+)
+
+```
+
+
+```{r}
+fviz_contrib(res.mca, choice = "var", axes = 1)
+fviz_contrib(res.mca, choice = "var", axes = 2)
+
 ```
 
 ### Répartitio de la magnitude en fonction de la profondeur et des volcans
@@ -1021,29 +1083,6 @@ ggplot(df) +  geom_point(aes(x = Magnitude, y = Depth, color = Volcanoes), size 
 
 ```
 
-## ACM
-
-```{r}
-acm_data <- df[, c("Classification", "Mag.Type", "Volcanoes", "VEI.approximatif")]
-res.mca <- MCA(acm_data, graph = FALSE)
-
-```
-
-```{r}
-fviz_screeplot(res.mca, addlabels = TRUE)
-```
-```{r}
-fviz_mca_var(
-  res.mca,
-  repel = TRUE,
-  col.var = "cos2" , gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07")  # colorer les variables selon leur cos²
-)
-```
-```{r}
-fviz_contrib(res.mca, choice = "var", axes = 1)
-fviz_contrib(res.mca, choice = "var", axes = 2)
-
-```
 
 
 ## ACP 
@@ -1090,6 +1129,8 @@ fviz_pca_biplot(acp_sect,
 
 
 ```
+
+
 # Equation logistique multinomiale
 ```{r}
 model <- multinom(Mag.Type ~ Magnitude , data = df)
