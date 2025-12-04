@@ -51,7 +51,7 @@ invisible(lapply(packages, function(pkg) {
 
 ```{r}
 ###library(esquisse)
-esquisse::esquisser()###
+##esquisse::esquisser()###
 ```
 
 
@@ -878,7 +878,19 @@ res.ca <- CA(tab, graph = FALSE)
 fviz_screeplot(res.ca, addlabels = TRUE)
 
 ```
-Il est également intéressant de regarder quelles variables contribuents le plus à quels axes
+Il est également intéressant de regarder quelles variables contribuents le plus à quels axes. 
+Pour la première dimension :
+
+- Les volcans qui contribuent le plus sont Nisyros, Santorin et Lipari
+
+- Les types de magmas qui contribuent le plus sont MA et MB
+
+Pour la deuxième dimension  
+
+- Les volcans qui contribuent le plus sont Nisyros et Santorin
+
+- Les types de magmas qui contribuent le plus sont MB-MA et ML
+
 
 ```{r}
 
@@ -888,8 +900,22 @@ fviz_contrib(res.ca, choice = "row", axes = 2)
 fviz_contrib(res.ca, choice = "col", axes = 2)
 
 ```
+Le biplot permet de visualiser les relations entre les modalités des deux variables. Il montre :
 
-Les graphiques réalisés précédement peuvent être également vu de la façon suivante. En axe des X il y a la dimension 1 et en axe des deux la dimension deux 
+- les variables situées à droite sont principalement bien représentées. 
+
+- Ma et Vesuvio, elles ont une qualité de représentation plus faible. Ce qui correspond bien avec les graphiques précédent qui montraient que Ma et le Vesuve n'était pas dans les variables les plus représentées dans les deux premières dimensions. 
+
+- une discrimination forte entre les volcans italiens et les volcans égéens principalement expliquée par Dim1
+
+- une discrimination entre Nisyros et Santorin principalement expliquée par Dim 2
+
+- les volcans italiens présentent des caractéristiques communes, peu de dispersion
+
+- les volcans grecs présentent une variabilité géochimique plus importantes. 
+
+
+
 ```{r}
 fviz_ca_biplot(
   res.ca,
@@ -906,6 +932,13 @@ fviz_ca_biplot(
 
 ### Répartition du type de magma en fonction des classifications
 
+- Le type MA est majoritaire dans la classification des volcans explosifs
+
+- Le type MB est majoritaire dans la classification des volcans effusifs
+
+- ML apparait uniquement dans la classification des volcans explosifs
+
+-MB-MA et MR ne sont pas fortement représentés
 
 ```{r}
 ggplot (df, aes (x=Classification)) +geom_bar (aes(fill = Mag.Type), position = "dodge")+
@@ -916,19 +949,19 @@ ggplot (df, aes (x=Classification)) +geom_bar (aes(fill = Mag.Type), position = 
   ) +
   theme_minimal ()
 ```
-Comme pour le graphique précédent, il faut réaliser un test chi-deux pour savoir si il est pertinant ou non de faire une AFC
+Le test chi2 est également réalisé pour savoir s'il y a une relation entre les deux variables qualitatives. Comme pour la relation précédente, la p-valeur <0.05. Ce qui veut dire qu'il y a bien une relation entre les deux variables. 
 ```{r}
 tabmg <- table(df$Classification, df$Mag.Type)
 chisq.test(tabmg)
 
 ```
-```{r}
-res.ca2 <- CA(tabmg, graph = FALSE)
-```
+
 
 ```{r}
+res.ca2 <- CA(tabmg, graph = FALSE)
 fviz_screeplot(res.ca2, addlabels = TRUE)
 ```
+
 ```{r}
 
 fviz_contrib(res.ca2, choice = "row", axes = 1)
@@ -951,10 +984,12 @@ fviz_ca_biplot(
 ```
 
 # Analyse multivariée 
+
+Précédement, ce sont les analyses avec une pour deux variables qui était étudié. Il est pourtant également d'étudier les relations entre plus de trois variables différentes. 
 ## Représentation graphiques 
 ### Répartition du type de magma selon le volcan et la classification
 
-
+Le graphique montre larépartition des types de magmas en fonction du volcans, des laves ainsi que la classification. 
 
 ```{r}
 ggplot(df, aes(x = Volcanoes, fill = Mag.Type)) +
@@ -971,6 +1006,10 @@ ggplot(df, aes(x = Volcanoes, fill = Mag.Type)) +
 ```
 
 ### Répartitio de la magnitude en fonction de la profondeur et des volcans
+
+La relation entre la magnitude et la profondeur en fonction des volcans. 
+
+Il n'y a pas de relation de linéarité. 
 ```{r}
 ggplot(df) +  geom_point(aes(x = Magnitude, y = Depth, color = Volcanoes), size = 1.5) +
   labs(
