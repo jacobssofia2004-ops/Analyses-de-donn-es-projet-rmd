@@ -21,7 +21,7 @@ knitr::opts_chunk$set(echo = FALSE,message = FALSE)
 ```
 
 # Introduction 
-
+test
 Dans le monde, on compte plus de **800 millions** de personnes vivant à proximité d’un volcan dont **200 millions à moins de 30 km d’un volcan actif** (CNRS, 2025). La caractérisation de l’aléa volcanique est donc essentielle pour **la sureté des habitants** en territoires volcaniques. Cela passe notamment par la compréhension de lien divers entre un volcan et **le type de dépôts ou l’intensité éruptive** qu’il produit. Notre étude se concentre sur la région méditerranéenne, en particulier sur **deux édifices grecs** et **quatre édifices italiens**, ces deux pays étant particulièrement connues pour leurs volcanismes très actifs et notamment plusieurs éruptions historiques. Les volcans italiens sont **l’Etna (Sicile, Italie), le Vésuve (Naples, sud de l’Italie), Lipari et Vulcano (Iles Eoliennes, Sicile, Italie). Les volcans grecques sont le Santorin et le Nisyros (Iles Dodecanese, Grèce)**. Ici nous ne nous concentrerons que sur **la période 2015 à 2025**.
 
 Nous avons **les données de magnitudes, types de magma, profondeur du magma, le VEI, la classification et le volume estimé de produits** pour chaque édifice volcanique en plus des coordonnées des éruptions pour chaque édifices.
