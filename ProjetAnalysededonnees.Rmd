@@ -20,18 +20,10 @@ output:
 knitr::opts_chunk$set(echo = FALSE,message = FALSE)
 ```
 
-# Introduction 
-test
-Dans le monde, on compte plus de **800 millions** de personnes vivant à proximité d’un volcan dont **200 millions à moins de 30 km d’un volcan actif** (CNRS, 2025). La caractérisation de l’aléa volcanique est donc essentielle pour **la sureté des habitants** en territoires volcaniques. Cela passe notamment par la compréhension de lien divers entre un volcan et **le type de dépôts ou l’intensité éruptive** qu’il produit. Notre étude se concentre sur la région méditerranéenne, en particulier sur **deux édifices grecs** et **quatre édifices italiens**, ces deux pays étant particulièrement connues pour leurs volcanismes très actifs et notamment plusieurs éruptions historiques. Les volcans italiens sont **l’Etna (Sicile, Italie), le Vésuve (Naples, sud de l’Italie), Lipari et Vulcano (Iles Eoliennes, Sicile, Italie). Les volcans grecques sont le Santorin et le Nisyros (Iles Dodecanese, Grèce)**. Ici nous ne nous concentrerons que sur **la période 2015 à 2025**.
-
-Nous avons **les données de magnitudes, types de magma, profondeur du magma, le VEI, la classification et le volume estimé de produits** pour chaque édifice volcanique en plus des coordonnées des éruptions pour chaque édifices.
-L’objectif est de comprendre si il existe un **lien entre intensité de l’éruption (magnitude) et l’édifice volcanique** afin de déterminer quelle population s’expose à un **risque** plus important. Il sera aussi particulièrement intéressant de regarder le **lien possible entre volcans et type de magma** car le risques lié à un volcan est en partie du au type de matériaux qu’il produit. Ces résultats pourrait également nous permettre de déterminer si **les populations** d’un volcan en particulier s’exposent à un **risque accrue**. Enfin, d’un point de vus purement recherche nous allons nous intéressé au **lien entre édifice et profondeur du magma** car c’est grâce à la détection du magma en profondeur que l’on peut **anticiper une éruption**. Egalement à **la profondeur en fonction du type de magma** mais cela nous permettra, au terme d’une étude pétrologique ultérieure de prédire des **temps de remonté du magma et des durées pré-éruptifs** afin **d’alerter la population** en cas d’éruption imminente si ce lien existe.
-
-# Analyse exploiratoire des données 
-
-## Chargement et préparation des données
-
 ```{r}
+df <- read.csv("DataR.csv", sep = ";")#importation des données
+```
+```{r include=FALSE}
 packages <- c("dplyr", "ggplot2", "tidyr","performance","car","maps","ggspatial","sf", "prettymapr","rnaturalearth","rnaturalearthdata","viridis","see","patchwork","geosphere","reshape2","cowplot","factoextra","FactoMineR","plotly","PerformanceAnalytics","ade4","pheatmap","ggsci","nnet")
 
 installed_packages <- rownames(installed.packages())
@@ -48,25 +40,9 @@ invisible(lapply(packages, function(pkg) {
 }))
 
 ```
+# Introduction 
 
-```{r}
-###library(esquisse)
-##esquisse::esquisser()###
-```
-
-
-
-```{r}
-df <- read.csv("DataR.csv", sep = ";")#importation des données
-str(df)
-#modification des types de variables 
-df [,c(1,2,8,11,12,13,14)]<- lapply(df[,c(1,2,8,11,12,13,14)], as.factor)
-df$Volume <- as.numeric(df$Volume)
-summary(df)
-
-var_quali <- df[,c("Depth","Magnitude")]
-var_quanti <- df[,c("Volcanoes","Mag.Type", "Region","Country")]
-```
+Dans le monde, on compte plus de **800 millions** de personnes vivant à proximité d’un volcan dont **200 millions à moins de 30 km d’un volcan actif** (CNRS, 2025). La caractérisation de l’aléa volcanique est donc essentielle pour **la sureté des habitants** en territoires volcaniques. Cela passe notamment par la compréhension de lien divers entre un volcan et **le type de dépôts ou l’intensité éruptive** qu’il produit. Notre étude se concentre sur la région méditerranéenne, en particulier sur **deux édifices grecs** et **quatre édifices italiens**, ces deux pays étant particulièrement connues pour leurs volcanismes très actifs et notamment plusieurs éruptions historiques. 
 
 ```{r}
 world <- ne_countries(scale = "medium", returnclass = "sf")
@@ -93,11 +69,12 @@ ggplot(data = world) +
 
 
 ```
+
+Les volcans italiens sont **l’Etna (Sicile, Italie), le Vésuve (Naples, sud de l’Italie), Lipari et Vulcano (Iles Eoliennes, Sicile, Italie). Les volcans grecques sont le Santorin et le Nisyros (Iles Dodecanese, Grèce)**. Ici nous ne nous concentrerons que sur **la période 2015 à 2025**.
+
 ```{r}
 volcanIt <- df[15:36,]
-str(volcanIt)
-volcanGr <- df[c(1:13,37:47),]
-str(volcanGr)
+
 ggplot(data = world) +
   geom_sf(fill = "antiquewhite") +
   geom_point(
@@ -119,6 +96,7 @@ ggplot(data = world) +
 ```
 
 ```{r}
+volcanGr <- df[c(1:13,37:47),]
 ggplot(data = world) +
   geom_sf(fill = "antiquewhite") +
   geom_point(
@@ -138,6 +116,37 @@ ggplot(data = world) +
         panel.grid = element_line(color = "white"))
 ```
 
+Nous avons **les données de magnitudes, types de magma, profondeur du magma, le VEI, la classification et le volume estimé de produits** pour chaque édifice volcanique en plus des coordonnées des éruptions pour chaque édifices.
+L’objectif est de comprendre si il existe un **lien entre intensité de l’éruption (magnitude) et l’édifice volcanique** afin de déterminer quelle population s’expose à un **risque** plus important. Il sera aussi particulièrement intéressant de regarder le **lien possible entre volcans et type de magma** car le risques lié à un volcan est en partie du au type de matériaux qu’il produit. Ces résultats pourrait également nous permettre de déterminer si **les populations** d’un volcan en particulier s’exposent à un **risque accrue**. Enfin, d’un point de vus purement recherche nous allons nous intéressé au **lien entre édifice et profondeur du magma** car c’est grâce à la détection du magma en profondeur que l’on peut **anticiper une éruption**. Egalement à **la profondeur en fonction du type de magma** mais cela nous permettra, au terme d’une étude pétrologique ultérieure de prédire des **temps de remonté du magma et des durées pré-éruptifs** afin **d’alerter la population** en cas d’éruption imminente si ce lien existe.
+
+# Analyse exploiratoire des données 
+
+## Chargement et préparation des données
+
+Les données ont été chargée et modifier pour avoir les bons types de variables. De plus, le **summary** a déjà permis d'obtenir pour les variables numériques : **le maximum**, **le minimum**, **la moyenne** et **la médiane**. 
+
+Au niveau des volcans, il est important de préciser que pour le Vesuve il n'y a qu'une **seule éruption** prise en compte dans cette étude. 
+
+```{r include=FALSE}
+df [,c(1,2,8,11,12,13,14)]<- lapply(df[,c(1,2,8,11,12,13,14)], as.factor)
+df$Volume <- as.numeric(df$Volume)
+
+```
+| Variable            | Type          | Résumé / Statistiques principales |
+|--------------------|---------------|----------------------------------|
+| **Volcanoes**      | Catégorielle  | Santorin (13), Nisyros (11), Lipari (9), Vulcano (6), Etna (7), Vesuvio (1) |
+| **Magnitude**      | Numérique     | Min: 1.2 – Max: 5.3 – Moy: 2.76 – Médiane: 2.3 |
+| **Depth (km)**     | Numérique     | Min: 0.0 – Max: 225.4 – Moy: 27.57 – Médiane: 10.0 |
+| **Volume (m³)**    | Numérique     | Min: 6.3×10⁴ – Max: 7.98×10⁸ – Moy: 5.01×10⁷ – Médiane: 7.98×10⁵ |
+| **Latitude**       | Numérique     |- |
+| **Longitude**      | Numérique     | - |
+| **VEI**            | Catégorielle  | VEI 1: 24, VEI 2: 9, VEI 3: 13, VEI 4: 1 |
+| **Classification** | Catégorielle  | Hawaïen/Strombolien (24), Strombolien/Vulcanien (9), Vulcanien (13), Vulcanien/Plinien (1) |
+| **Mag.Type**       | Catégorielle  | MB (19), MA (14), ML (9), MB-MA (3), MBa (1), MR (1) |
+| **Region**         | Catégorielle  | Dodecanese Islands (24), Sicily (22), Southern (1) |
+| **Country**        | Catégorielle  | Greece (24), Italy (23) |
+
+## Calcul des distances entre les volcans
 
 ```{r}
 
@@ -150,8 +159,7 @@ centres <- df %>%
 dist_matrix_group <- distm(centres[, c("Longitude", "Latitude")], fun = distHaversine) / 1000
 rownames(dist_matrix_group) <- centres$Volcanoes
 colnames(dist_matrix_group) <- centres$Volcanoes
-```
-```{r}
+
 dist_long <- melt(dist_matrix_group)
 colnames(dist_long) <- c("Volcano1", "Volcano2", "Distance_km")
 ggplot(dist_long, aes(x = Volcano1, y = Volcano2, fill = Distance_km)) +
@@ -166,52 +174,72 @@ ggplot(dist_long, aes(x = Volcano1, y = Volcano2, fill = Distance_km)) +
 
 ## Calcule des paramètres de dispersions
 
-```{r}
-#permet de calculer la variance et la moyenne pour les variables 
-calc_variances_by_group <- function(df, group_col = "Group", numeric_vars = NULL) {
+```{r include=FALSE}
+calc_stats_by_group <- function(df, group_col = "Group", numeric_vars = NULL) {
+  
   if (is.null(numeric_vars)) {
     numeric_vars <- names(df)[sapply(df, is.numeric)]
   }
-
+  
+  # Fonction interne pour calculer les statistiques
+  compute_stats <- function(x) {
+    list(
+      Variance = var(x, na.rm = TRUE),
+      Mean     = mean(x, na.rm = TRUE),
+      Median   = median(x, na.rm = TRUE),
+      Min      = min(x, na.rm = TRUE),
+      Max      = max(x, na.rm = TRUE)
+    )
+  }
+  
   # 1. Calcul global
-  global_var <- sapply(df[numeric_vars], var, na.rm = TRUE)
-  global_mean <- sapply(df[numeric_vars], mean, na.rm = TRUE)
-
-  global_df <- data.frame(
-    Group = "Global",
-    Variable = names(global_var),
-    Variance = as.numeric(global_var),
-    Mean = as.numeric(global_mean),
-    stringsAsFactors = FALSE
-  )
-
-  # 2. Calcul par groupe
-  groups <- unique(df[[group_col]])
-  group_list <- lapply(groups, function(g) {
-    sub_df <- df[df[[group_col]] == g, numeric_vars, drop = FALSE]
-    s_var <- sapply(sub_df, var, na.rm = TRUE)
-    s_mean <- sapply(sub_df, mean, na.rm = TRUE)
+  global_list <- lapply(df[numeric_vars], compute_stats)
+  global_df <- do.call(rbind, lapply(names(global_list), function(v) {
     data.frame(
-      Group = g,
-      Variable = names(s_var),
-      Variance = as.numeric(s_var),
-      Mean = as.numeric(s_mean),
+      Group = "Global",
+      Variable = v,
+      Variance = global_list[[v]]$Variance,
+      Mean     = global_list[[v]]$Mean,
+      Median   = global_list[[v]]$Median,
+      Min      = global_list[[v]]$Min,
+      Max      = global_list[[v]]$Max,
       stringsAsFactors = FALSE
     )
+  }))
+  
+  # 2. Calcul par groupe
+  groups <- unique(df[[group_col]])
+  group_dfs <- lapply(groups, function(g) {
+    sub_df <- df[df[[group_col]] == g, numeric_vars, drop = FALSE]
+    res <- lapply(sub_df, compute_stats)
+    do.call(rbind, lapply(names(res), function(v) {
+      data.frame(
+        Group = g,
+        Variable = v,
+        Variance = res[[v]]$Variance,
+        Mean     = res[[v]]$Mean,
+        Median   = res[[v]]$Median,
+        Min      = res[[v]]$Min,
+        Max      = res[[v]]$Max,
+        stringsAsFactors = FALSE
+      )
+    }))
   })
-  group_df <- do.call(rbind, group_list)
-
-  # 3. Combiner
-  result <- rbind(global_df, group_df)
-  rownames(result) <- NULL
-
-  # 4. Supprimer la notation scientifique
-  result$Variance <- format(result$Variance, scientific = FALSE, digits = 6)
-  result$Mean <- format(result$Mean, scientific = FALSE, digits = 6)
-
-  return(result)
+  
+  final <- rbind(global_df, do.call(rbind, group_dfs))
+  rownames(final) <- NULL
+  
+  # Option : enlever la notation scientifique
+  final[, c("Variance", "Mean", "Median", "Min", "Max")] <- 
+    lapply(final[, c("Variance", "Mean", "Median", "Min", "Max")], 
+           format, scientific = FALSE, digits = 6)
+  
+  return(final)
 }
-calc_variances_by_group(df, group_col = "Volcanoes", numeric_vars = c("Depth", "Magnitude", "Volume"))
+
+# Exemple d'appel :
+calc_stats_by_group(df, group_col = "Volcanoes",
+                    numeric_vars = c("Depth", "Magnitude", "Volume"))
 
 
 ```
@@ -224,194 +252,228 @@ Les valeurs de variance pour le volume et la magnitude sont ccohérentes par rap
 
 On remarque qur pour le **Vésuve nous n'avons qu'une seule éruption**. Ainsi, nous ne pouvons **pas calsuler de valeurs de dispersion** et la profondeurs, la magnitude et le volume moyen seront les valeurs des données de l'éruption.
 
-```{r}
+| Groupe    | Variable   | Variance               | Moyenne       | Médiane     | Min       | Max          |
+|-----------|------------|-----------------------|---------------|-------------|-----------|--------------|
+| Global    | Depth      | 2683.43422            | 27.56902      | 10.00       | 0.00      | 225.420      |
+| Global    | Magnitude  | 1.56159               | 2.75957       | 2.30        | 1.20      | 5.300        |
+| Global    | Volume     | 1.5973504×10¹⁶        | 5.012363×10⁷  | 798104.93   | 63395.73  | 798104926.0  |
+| Santorin  | Depth      | 23.21269              | 7.44615       | 10.00       | 0.00      | 17.600       |
+| Santorin  | Magnitude  | 2.25859               | 2.87692       | 1.90        | 1.20      | 4.700        |
+| Santorin  | Volume     | 4.908889×10¹⁵         | 5.338526×10⁷  | 317731.29   | 63395.73  | 2.00474893×10⁸ |
+| Etna      | Depth      | 130.90810             | 19.41429      | 25.20       | 5.00      | 30.000       |
+| Etna      | Magnitude  | 1.07333               | 2.00000       | 1.50        | 1.40      | 4.300        |
+| Etna      | Volume     | 9.056722×10¹⁴         | 1.156326×10⁷  | 126491.11   | 100475.46 | 7.9810492×10⁷ |
+| Vesuvio   | Depth      | NA                    | -             | -           | -         | -            |
+| Vesuvio   | Magnitude  | NA                    | -             | -           | -         | -            |
+| Vesuvio   | Volume     | NA                    | -             | -           | -         | -            |
+| Vulcano   | Depth      | 10.43741              | 9.28700       | 9.15        | 5.20      | 14.722       |
+| Vulcano   | Magnitude  | 1.36967               | 2.21667       | 2.00        | 1.20      | 4.400        |
+| Vulcano   | Volume     | 1.6690856×10¹⁵        | 1.708496×10⁷  | 443170.11   | 63395.73  | 1.00475457×10⁸ |
+| Lipari    | Depth      | 8245.75305            | 54.22689      | 8.80        | 5.00      | 225.420      |
+| Lipari    | Magnitude  | 0.84000               | 2.90000       | 2.70        | 1.80      | 4.400        |
+| Lipari    | Volume     | 1.902945×10¹⁵         | 2.354918×10⁷  | 23549175.68 | 252382.94 | 100475457.300|
+| Nisyros   | Depth      | 3726.96190            | 47.16182      | 13.10        | 5.47      | 152.810     |
+| Nisyros   | Magnitude  | 1.45855               | 3.33636       | 2.80	       | 1.90      | 5.300        |
+| Nisyros   | Volume     | 5.7457176×10¹⁶        | 1.150703×10⁸  | 2523829.38	 | 317731.29 | 798104926.000|
+
+
+```{r include=FALSE}
 #à quoi ça sert (je ne sais pas), pas vraiment utile 
 df_quant <- df[,c("Depth","Magnitude","Volume")]
 apply(df_quant,2,sd)
 apply(df_quant,2,sd)/apply(df_quant,2,mean)
 ```
-```{r}
-library(dplyr)
+| Variable   | Écart-type (sd)     | Coefficient de variation (CV) |
+|------------|----------------------|-------------------------------|
+| Depth      | 5.18×10¹            | 1.88                          |
+| Magnitude  | 1.25                | 0.45                          |
+| Volume     | 1.26×10⁸            | 2.52                          |
 
-df %>%
-  group_by(Volcanoes) %>%
-  summarise(
-    mean_mag = mean(Magnitude, na.rm = TRUE),
-    sd_mag = sd(Magnitude, na.rm = TRUE),
-    min_mag = min(Magnitude, na.rm = TRUE),
-    max_mag = max(Magnitude, na.rm = TRUE),
-    median_mag = median(Magnitude, na.rm = TRUE)
-  )
 
-```
 Les *volcans grecs porduisent une plus large gamme d'éruption de magnitudes différentes* que les volacans Italiens et se sont égalment eux qui produisent les *éruptions les plus intenses avec Lipari*. Cependant, il n'y pas de grande difference entre les différents paramètres de dispersion des les volcans.
 
 # Graphiques des analyses univariés
 
-
-
 ## Analyse univariée de la profondeur
-```{r}
 
-p<- ggplot(df, aes(x = "", y = Depth)) +
-  geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +  # outliers visibles
-  stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "blue") + # moyenne.
-  scale_fill_viridis(discrete = TRUE, option = "D") +  # palette harmonieuse
+Pour **l'ensemble des volcans, hormis les 7 outliers visibles en rouge sur le boxplot, la répartition des pofondeurs sur l'hitogramme est symétique par rapport à une valeur centrale de 10 km**. La majorité de nos magmas* proviennet donc de **chambre localsiée entre 15 et 7 km** ce qui reste relativement **superficielle**.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+p <- ggplot(df, aes(x = "", y = Depth)) +
+  geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +
+  stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "blue") +
   theme_minimal(base_size = 14) +
   scale_y_log10() +
   labs(
-    title = "Distribution des profondeurs
-    pour l'ensemble des volcans",
+    title = "Distribution des profondeurs \npour l'ensemble des volcans",
     x = "",
-    y = "Profondeur (log(km)"
+    y = "Profondeur (log(km))"
   ) +
   theme(
     legend.position = "none",
-    axis.text.x = element_text(angle = 45, hjust = 1),  # rotation labels si nécessaire
-    plot.title = element_text(face = "bold", size = 16),
+    axis.title.y = element_text(size = 12, face = "plain", margin = margin(r = 5)),  
+    plot.title = element_text(face = "bold", size = 12),
     plot.subtitle = element_text(size = 12)
   )
-p1 <- ggplot(df,aes(x=Depth))+
-  geom_histogram(binwidth = 0.2, fill="lightyellow", color="black", alpha=0.7)+
-  geom_density(color = "red", size = 1) +
-  theme_minimal()+
-  labs(title="Histogramme de la 
-       profondeur des magmas ",
-       x="Depth",
-       y="")+
-  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
-p+p1+plot_layout(widths = c(1,2.25))
+
+
+p1 <- ggplot(df, aes(x = Depth)) +
+  geom_histogram(aes(y = ..density..),   
+                 binwidth = 0.2, 
+                 fill = "lightyellow", 
+                 color = "black", 
+                 alpha = 0.7) +
+  geom_density(color = "red", linewidth = 1) +
+  theme_minimal() +
+  labs(
+    title = "Histogramme de la profondeur 
+des magmas",
+    x = "Depth",
+    y = "Densité"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 12))
+
+
+p + p1 + plot_layout(widths = c(5, 5))
 ```
-Pour *l'ensemble des volcans, hormis les 7 outliers visibles en rouge sur le boxplot, la répartition des pofondeurs sur l'hitogramme est symétique par rapport à une valeur centrale de 10 km. La **majorité de nos magmas* proviennet donc de *chambre localsiée entre 15 et 7 km* ce qui reste relativement *superficielle*.
 
 ## Analyse univariée de la magnitude
-```{r}
-p2<- ggplot(df,aes(x=Magnitude))+
-  geom_histogram(binwidth = 0.2, fill="lightgreen", color="black", alpha=0.7)+
-  geom_density(color = "red", size = 1) +
-  theme_minimal()+
-  labs(title="Histogramme de la
-       magnitude de éruptions ",
-       x="Magnitude",
-       y="")+
-  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
-```
+
+Nous n'avons pasde **pas de valeur abérente**. On a une **réputation bimodale des données**. Une première partie des magnitudes se situe en dessous de **3**, ce sont les **valeurs de magnétudes faibles** et une seconde partie se trouve au-dessus de 3 avec des **valeurs dites fortes**.
 
 ```{r}
-#séparer les deux populations que l'on observe dans le graphique précédent 
-df_forte  <- df[df$Magnitude >= 3, ]
-df_faible <- df[df$Magnitude < 3, ] # population forte
-```
+p2 <- ggplot(df, aes(x = Magnitude)) +
+  geom_histogram(aes(y = ..density..),  
+                 binwidth = 0.2,
+                 fill = "lightgreen",
+                 color = "black",
+                 alpha = 0.7) +
+  geom_density(color = "red", linewidth = 1) +  
+  theme_minimal() +
+  labs(title = "Histogramme de la magnitude 
+des éruptions",
+       x = "Magnitude",
+       y = "Densité") +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 12))
 
-```{r}
 p3 <- ggplot(df, aes(x = "", y = Magnitude)) +
-  geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +  # outliers visibles
-  stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "blue") + # moyenne
-  scale_fill_viridis(discrete = TRUE, option = "D") +  # palette harmonieuse
-  theme_minimal(base_size = 14) +
+  geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +  
+  stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "blue") + 
+  scale_fill_viridis(discrete = TRUE, option = "D") +  
+  theme_minimal(base_size = 12) +
   scale_y_log10() +
   labs(
-    title = "Distribution des magnitudes 
-    pour l'ensemble des volcans",
+    title = "Distribution des magnitudes pour 
+        l'ensemble des volcans",
     x = "",
     y = "Magnitude"
   ) +
   theme(
     legend.position = "none",
-    axis.text.x = element_text(angle = 45, hjust = 1),  # rotation labels si nécessaire
-    plot.title = element_text(face = "bold", size = 16),
+   axis.title.y = element_text(size = 12, face = "plain", margin = margin(r = 5)),   
+    plot.title = element_text(face = "bold", size = 12),
     plot.subtitle = element_text(size = 12))
 
 p3+p2+plot_layout(widths = c(1,1.5))
 ```
-Nousn'avons pasde ***pas de valeur abérente**. On a une **réputation bimodale des données**. Une première partie des magnitudes se situe en dessous de **3**, ce sont les **valeurs de magnétudes faibles** et une seconde partie se trouve au-dessus de 3 avec des **valeurs dites fortes**.
-
-```{r}
- p4 <- ggplot(df_forte,aes(x=Magnitude))+
-  geom_histogram(binwidth = 0.2, fill="lightblue", color="black", alpha=0.7)+
-  geom_density(color = "red", size = 1) +
-  theme_minimal()+
-  labs(title="Histogramme de la magnitude 
-       des éruptions fortes (>=3) ",
-       x="Magnitude",
-       y="")+
-  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
-```
-```{r}
-p5 <- ggplot(df_faible,aes(x=Magnitude))+
-  geom_histogram(binwidth = 0.2, fill="lightblue", color="black", alpha=0.7)+
-  geom_density(color = "red", size = 1) +
-  theme_minimal()+
-  labs(title="Histogramme de la magnitude 
-       des éruptions faible (<3) ",
-       x="Magnitude",
-       y="")+
-  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
-p5+p4+plot_layout(widths = c(1,1))
-```
 Les **fortes magnitudes ont une distribution sysmétrique** qui s'articule autour d'une **valeur centrale de 4,3** tandis que les **faibles magnitudes** suivent aussi une **distribution sysmétrique** autour de **1,8** mais reste moins marqué et s'étale dans **l'intervalle 1 à 2,2**.
 
-## Analyse univariée du type de magma
+```{r}
+df_forte  <- df[df$Magnitude >= 3, ]
+df_faible <- df[df$Magnitude < 3, ] 
+```
 
 ```{r}
-ggplot(df,aes(x=Mag.Type))+
-  geom_bar(binwidth = 0.2, fill="lightyellow", color="black", alpha=0.7)+
-  theme_minimal()+
-  labs(title="Répartition des types de magmas éruptés pour l'ensemble des volcans ",
-       x="Type de magma",
-       y="Nombre d'observation")+
-  theme(plot.title = element_text(hjust = 0.5, face="bold", size=10))
+p4 <- ggplot(df_forte, aes(x = Magnitude)) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.2,
+                 fill = "lightgreen", color = "black", alpha = 0.7) +
+  geom_density(color = "red", linewidth = 1) +  # size -> linewidth
+  theme_minimal() +
+  labs(title = "Histogramme de la magnitude 
+  des éruptions fortes (>=3)",
+       x = "Magnitude", y = "Densité") +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 14))
+
+p5 <- ggplot(df_faible, aes(x = Magnitude)) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.2,
+                 fill = "lightgreen", color = "black", alpha = 0.7) +
+  geom_density(color = "red", linewidth = 1) +
+  theme_minimal() +
+  labs(title = "Histogramme de la magnitude 
+  des éruptions faibles (<3)",
+       x = "Magnitude", y = "Densité") +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 14))
+
+p5 + p4 + plot_layout(widths = c(1, 1))
 ```
-La majorité des magmas sont basaltique (MB) avec quelques occurences andésitique (MA) et latitique (ML=un magma latitique est un magma basaltique avec une texture particulière, il n'y a pas de différence de chimie importante). La série est basic et donc faiblement différencié. En effet il n'y a quaiment pas de magma différencié rhyolique (MR). La faible présence de basalte alcalin (MBa) révelle que les magmas générés appartiennen à la série subalcaline. Enfin, il se produit un petit peu de mélande car 3 magmas on uen composition intermédiaire entre basaltique et andésitique (MB-MA).
+
 
 ## Analyse univariée du volume estimé
 
-```{r}
-p6 <- ggplot(df,aes(x=log(Volume)))+
-  geom_histogram(binwidth = 0.2, fill="lightgreen", color="black", alpha=0.7)+
-  geom_density(color = "red", linewidth= 1) +
-  theme_minimal()+
-  labs(title="Histogramme des volumes
-       estimés de éruptions ",
-       x="Volume érupté",
-       y="")+
-  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16))
-```
-
+Pour les **volumes estimés**, on montrent également une **répartition bimodale tres similaire à celle des magnitudes** avec une valeur intermétidaiure entre les faibles et les forts volumes de **16,25 km3**. Les **forts volumes** s'articulent autour d'un mode de **18,7 km3** et la **faibles volumes** autoure de **12,5 km3** mais cela reste moins symétirque et forme plus un plateau. **Les volumes estimés sont utilisés pour déterminer la magnitude de l'érution, il est donc logique qu'il suivent excatement la meme distibution pour l'hitogramme et le boxplot**.
 
 ```{r}
+p6 <- ggplot(df, aes(x = log(Volume))) +
+  geom_histogram(aes(y = ..density..),   
+                 binwidth = 0.2,
+                 fill = "lightgreen",
+                 color = "black",
+                 alpha = 0.7) +
+  geom_density(color = "red", linewidth = 1) +
+  theme_minimal() +
+  labs(title = "Histogramme des volumes estimés d'éruptions",
+       x = "log(Volume érupté)",
+       y = "Densité") +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 12))
+
+
 p7 <- ggplot(df, aes(x="", y = Volume)) +
-  geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +  # outliers visibles
-  stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "blue") + # moyenne
-  scale_fill_viridis(discrete = TRUE, option = "D") +  # palette harmonieuse
+  geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +  
+  stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "blue") + 
+  scale_fill_viridis(discrete = TRUE, option = "D") +  
   theme_minimal(base_size = 14) +
   scale_y_log10() +
   labs(
     title = "Distribution des volumes 
-          estimés pour
-    l'ensemble des volcans",
+estimés pour l'ensemble 
+          des volcans",
     x = "",
     y = "Volume"
   ) +
   theme(
     legend.position = "none",
-    axis.text.x = element_text(angle = 45, hjust = 1),  # rotation labels si nécessaire
-    plot.title = element_text(face = "bold", size = 16),
+   axis.title.y = element_text(size = 12, face = "plain", margin = margin(r = 5)),    
+    plot.title = element_text(face = "bold", size = 12),
     plot.subtitle = element_text(size = 12))
 p7+p6+plot_layout(widths = c(1,2.5))
 ```
-Pour les **volumes estimés**, on montrent également une **répartition bimodale tres similaire à celle des magnitudes** avec une valeur intermétidaiure entre les faibles et les forts volumes de **16,25 km3**. Les **forts volumes** s'articulent autour d'un mode de **18,7 km3** et la **faibles volumes** autoure de **12,5 km3** mais cela reste moins symétirque et forme plus un plateau. **Les volumes estimés sont utilisés pour déterminer la magnitude de l'érution, il est donc logique qu'il suivent excatement la meme distibution pour l'hitogramme et le boxplot**.
+## Analyse univariée du type de magma
+
+La majorité des magmas sont basaltique (MB) avec quelques occurences andésitique (MA) et latitique (ML=un magma latitique est un magma basaltique avec une texture particulière, il n'y a pas de différence de chimie importante). La série est basic et donc faiblement différencié. En effet il n'y a quaiment pas de magma différencié rhyolique (MR). La faible présence de basalte alcalin (MBa) révelle que les magmas générés appartiennen à la série subalcaline. Enfin, il se produit un petit peu de mélande car 3 magmas on uen composition intermédiaire entre basaltique et andésitique (MB-MA).
+
+```{r}
+ggplot(df,aes(x=Mag.Type))+
+  geom_bar(fill="lightyellow", color="black", alpha=0.7)+
+  theme_minimal()+
+  labs(title="Répartition des types de magmas éruptés pour l'ensemble des volcans ",
+       x="Type de magma",
+       y="Nombre d'observation")+
+  theme(plot.title = element_text(hjust = 0.5, face="bold", size=12))
+```
+
 
 ## Analyse univariée du VEI estimé
 
 ```{r}
-ggplot(df,aes(x=VEI.approximatif))+
-  geom_bar(binwidth = 0.2, fill="lightyellow", color="black", alpha=0.7)+
-  theme_minimal()+
-  labs(title="Répartition des VEI pour l'ensemble des volcans ",
-       x="VEI",
-       y="Nombre d'observation")+
-  theme(plot.title = element_text(hjust = 0.5, face="bold", size=10))
+ggplot(df, aes(x = VEI.approximatif)) +
+  geom_bar(fill = "lightyellow", color = "black", alpha = 0.7) + 
+  theme_minimal() +
+  labs(title = "Répartition des VEI pour l'ensemble des volcans",
+       x = "VEI",
+       y = "Nombre d'observations") +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 12))
+
 ```
 Le VEI est une échelle de 1 à 8 donnant l'intensité d'une éruption volcanique (1 tres peu intense et 8 extremement intense). Dans la région, **la majorité des éruptions sont de faible intensité** avec un VEI autour de **1** et **2** (plus de 30 cas), **VEI 1 étant majoritaire**. On enregistre des éruption peu à moyennement intense (3 à 4), mais elles restent minoritaire. Il n'y a aucune éruption avec un VEI supérieure à 4, ce qui est rassurant puisque les grosses éruptions ont une occurences de plusieurs centaines d'année et sont donc difficilement visible sur une période de 10 ans.
 
@@ -422,6 +484,11 @@ Cette analyse univarié a permis de déterminer l'allure de chacune des variable
 ## Lien entre deux variables quantitatives
 
 ### Lien entre la magnitude et la profondeur 
+
+**5 outliers** sont visble ce qui confirme nos obeservation faites dans l'univariée avec des points de profondeur beaucoup trop importante.
+Il n'y a **aucune corélation visible entre la profondeur et la magnétude**.
+Nous allons quand même effectuer un test pour vérifeir notre hypothèse. Il n'est pas possible de faire une ANOVA car nous avons de variables quantitatives et l'ANOVA compare deux moyennes de deux goupres, hors ici nous cherchons à corréler deux varables. Nous effectuons donc un **test de corrélation**.
+
 ```{r}
 
 ggplot(df) +  geom_point(aes(x = Magnitude, y = Depth), size = 1) +
@@ -434,9 +501,7 @@ ggplot(df) +  geom_point(aes(x = Magnitude, y = Depth), size = 1) +
 
 
 ```
-**5 outliers** sont visble ce qui confirme nos obeservation faites dans l'univariée avec des points de profondeur beaucoup trop importante.
-Il n'y a **aucune corélation visible entre la profondeur et la magnétude**.
-Nous allons quand même effectuer un test pour vérifeir notre hypothèse. Il n'est pas possible de faire une ANOVA car nous avons de variables quantitatives et l'ANOVA compare deux moyennes de deux goupres, hors ici nous cherchons à corréler deux varables. Nous effectuons donc un **test de corrélation**.
+
 
 ```{r}
 hist(df$Depth)
@@ -1124,7 +1189,7 @@ summary(model2)
 ```
 
 
-# Clustering 
+# Clustering (je ne sais pas si ça sert à grand chose de le mettre)
 
 Le clustering est une technique d'apprentissage non supervisée qui permet de regrouper des observations similaires en clusters ou groupes. Ici, le clustering K-means est utilisé pour regrouper les volcans en fonction de leurs caractéristiques quantitatives : profondeur, magnitude et volume.
 

@@ -169,13 +169,15 @@ pre {
   top: 20px;
 }
 
-/* === Figures === */
+/* === Figures larges et esthétiques === */
 img {
   display: block;
-  margin: 20px auto;
-  max-width: 100%;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  margin: 20px auto;     /* centre l'image */
+  width: 100%;           /* prend toute la largeur disponible */
+  max-width: 1200px;     /* limite l'agrandissement si l'image originale est petite */
+  height: auto;          /* conserve les proportions */
+  border-radius: 8px;    /* coins arrondis */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1); /* ombre légère */
 }
 
 figcaption {
@@ -185,6 +187,7 @@ figcaption {
   margin-top: 4px;
   font-style: italic;
 }
+
 
 /* === Pied de page === */
 footer {
