@@ -806,19 +806,19 @@ Un test peut être réalisé afin de savoir si il y a un lien entre le VEI et le
 
 ```{r}
 tabVEI <- table (df$VEI.approximatif,df$Volcanoes)
-chisq.test(tabVEI)
-
+chi.1 <- chisq.test(tabVEI)
 ```
 Il s'agit d'un khi-deux pour **tester l'indépendance entre deux variables qualitatives**. 
 Les hépytohèses : 
 **H0 : il n'y a pas** de relation entre le VEI et les différents volcans.
 **H1 : il y a **une relation entre le VEI et les différents volcans.
 
-Dans ce cas-ci, le **test du chi 2 est significatif** car p-valeur > 0.05. Cela veut dire qu'**il n'y a pas de relation significatif entre le VEI et les volcans**.
+Dans ce cas-ci, le **test du chi 2 est significatif** car p-valeur > 0.05 (`r chi.1$p.value`) . Cela veut dire qu'**il n'y a pas de relation significatif entre le VEI et les volcans**.
 
 ### Répartition du type de magma en fonction des volcans
 
 Il est possible de voir que MA et MB sont les types de magmas les plus fréquents. 
+
 ```{r}
 ggplot (df, aes (x=Mag.Type)) +geom_bar (aes(fill = Volcanoes),position = "dodge")+
   labs(
@@ -833,11 +833,11 @@ ggplot (df, aes (x=Mag.Type)) +geom_bar (aes(fill = Volcanoes),position = "dodge
 
 ```{r}
 tab <- table(df$Volcanoes, df$Mag.Type)
-tab
-chisq.test(tab)
+chi.2 <- chisq.test(tab)
 #signifcatif car p-valeur <0.05
 ```
 ### ACF
+
 Une ACF est une analyse factorielle des correspondances. Cela  permet d'**analyser la relation entre deux variables qualitatives**. Il est ainsi important qu'il est la **présence d'une relation entre les deux**. C'est pour cela que l'AFC est réalisé à partir des **variables Volcanoes et Mag.Type**. 
 
 Le but de l'AFC est de réduire la dimensionnalité des données tout en gardant l'écart d'indépendance entre les variables. 
@@ -850,6 +850,7 @@ res.ca <- CA(tab, graph = FALSE)
 fviz_screeplot(res.ca, addlabels = TRUE)
 
 ```
+
 Il est également intéressant de regarder quelles variables contribuents le plus à quels axes. 
 Pour la première dimension :
 
@@ -866,10 +867,13 @@ Pour la deuxième dimension
 
 ```{r}
 
-fviz_contrib(res.ca, choice = "row", axes = 1)
-fviz_contrib(res.ca, choice = "col", axes = 1)
-fviz_contrib(res.ca, choice = "row", axes = 2)
-fviz_contrib(res.ca, choice = "col", axes = 2)
+p1 <- fviz_contrib(res.ca, choice = "row", axes = 1)
+p2 <- fviz_contrib(res.ca, choice = "col", axes = 1)
+p3 <- fviz_contrib(res.ca, choice = "row", axes = 2)
+p4 <- fviz_contrib(res.ca, choice = "col", axes = 2)
+
+(p1 | p2) /
+(p3 | p4)
 
 ```
 Le biplot permet de visualiser les relations entre les modalités des deux variables. Il montre :
@@ -921,12 +925,14 @@ ggplot (df, aes (x=Classification)) +geom_bar (aes(fill = Mag.Type), position = 
   ) +
   theme_minimal ()
 ```
-Le test chi2 est également réalisé pour savoir s'il y a une relation entre les deux variables qualitatives. Comme pour la relation précédente, la p-valeur <0.05. Ce qui veut dire qu'il y a bien une relation entre les deux variables. 
+
 ```{r}
 tabmg <- table(df$Classification, df$Mag.Type)
-chisq.test(tabmg)
+chi.3 <- chisq.test(tabmg)
 
 ```
+Le test chi2 est également réalisé pour savoir s'il y a une relation entre les deux variables qualitatives. Comme pour la relation précédente, la p-valeur <0.05 (`r chi.3$p.value`). Ce qui veut dire qu'il y a bien une relation entre les deux variables. 
+
 ### AFC
 L'AFC est réalisée à partir des variables Classification et Mag.Type. Un scree plot est réalisé afin de savoir quelle composante principale prend en charge le plus de variabilité. Les deux premières composantes prennent 100% de la variabilité. 
 
@@ -945,10 +951,13 @@ Pour la deuxième dimension :
 - Les types de magmas qui contribuent le plus sont MB-MA, ML, MR
 ```{r}
 
-fviz_contrib(res.ca2, choice = "row", axes = 1)
-fviz_contrib(res.ca2, choice = "col", axes = 1)
-fviz_contrib(res.ca2, choice = "row", axes = 2)
-fviz_contrib(res.ca2, choice = "col", axes = 2)
+p1<- fviz_contrib(res.ca2, choice = "row", axes = 1)
+p2 <- fviz_contrib(res.ca2, choice = "col", axes = 1)
+p3 <- fviz_contrib(res.ca2, choice = "row", axes = 2)
+p4 <- fviz_contrib(res.ca2, choice = "col", axes = 2)
+
+(p1 | p2) /
+(p3 | p4)
 ```
 Le biplot permet de visualiser les relations entre les modalités des deux variables.I Il montre :
 
@@ -979,8 +988,8 @@ fviz_ca_biplot(
 
 Précédement, ce sont les analyses avec une pour deux variables qui était étudié. Il est pourtant également d'étudier les relations entre plus de trois variables différentes. 
 
-## Représentation graphiques 
-### Répartition du type de magma selon le volcan et la classification
+## Répartition du type de magma selon le volcan et la classification
+### Représentation graphiques 
 
 Le graphique montre la répartition des types de magmas en fonction du volcans, des laves ainsi que la classification. Ce graphique permet d'observer : 
 
@@ -1006,7 +1015,7 @@ ggplot(df, aes(x = Volcanoes, fill = Mag.Type)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-## ACM
+### ACM
 
 L'ACM est une analyse en composantes multiples. Celle-ci permet d'analyser les relations entre plusieurs variables qualitatives. Ici, l'ACM est réalisée à partir des variables Classification, Mag.Type, Volcanoes.
 
@@ -1022,9 +1031,10 @@ fviz_screeplot(res.mca, addlabels = TRUE)
 ```
 
 ```{r}
-fviz_contrib(res.mca, choice = "var", axes = 1)
-fviz_contrib(res.mca, choice = "var", axes = 2)
 
+p1 <- fviz_contrib(res.mca, choice = "var", axes = 1)
+p2<- fviz_contrib(res.mca, choice = "var", axes = 2)
+(p1 | p2)
 ```
 
 Un biplot peut également être réaliser pour l'ACM. Avant toute chose, il est interessant de regarder que l'échelle au niveau du cos2 n'est pas du tout la même que précédement. Les valeurs ici sont beaucoup plus faible. 
@@ -1039,8 +1049,9 @@ fviz_mca_var(
 
 ```
 
-### Répartition de la magnitude en fonction de la profondeur et des volcans
+## Répartition de la magnitude en fonction de la profondeur et des volcans
 
+### Représentation graphique 
  
 ```{r}
 ggplot(df) +  geom_point(aes(x = Magnitude, y = Depth, color = Volcanoes), size = 1.5) +
@@ -1082,9 +1093,11 @@ Le graphique de contribution permet d'observer quelles variables contribuent le 
 pheatmap(as.matrix(acp_sect$co^2), cluster_cols=F,color = rev (hcl.colors(50, "Greens")))
 ```
 
+
 ```{r}
 fviz_pca_var(acp_sect, col.var = "cos2", gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),labelsize = 3)
 ```
+
 
 ```{r}
 fviz_pca_biplot(acp_sect,
@@ -1106,7 +1119,7 @@ fviz_pca_biplot(acp_sect,
 # Equation logistique multinomiale
 
 La régression logistique multinomiale est une extension de la régression logistique binaire qui permet de modéliser des variables dépendantes catégorielles avec plus de deux catégories. Ici, deux modèles sont réalisés : un avec comme variable dépendante le type de magma et un autre avec comme variable dépendante le volcan.
-```{r}
+```{r include=FALSE}
 model <- multinom(Mag.Type ~ Magnitude , data = df)
 model1 <- multinom(Mag.Type ~ Magnitude + Volume, data = df)
 model2 <- multinom(Mag.Type ~ Magnitude + Volume + Depth, data = df)
@@ -1114,36 +1127,40 @@ model2 <- multinom(Mag.Type ~ Magnitude + Volume + Depth, data = df)
 
 
 ```{r}
-summary(model)
+s1 <- summary(model)
 ```
 
 ```{r}
-summary(model1) 
+s2 <- summary(model1) 
 ```
 
 ```{r}
-summary(model2)
+s3 <- summary(model2)
 ```
+
 
 L’AIC (Akaike Information Criterion) est une mesure qui permet de déterminer quel modèle statistique explique le plus le modèle. Il faut que l’AIC soit la plus faible possible. Le plus grand point fort de l’AIC, c’est qu’elle pénalise les modèles qui sont trop complexes et qui donc ne peuvent pas s’appliquer sur des données invisibles. 
+
+
 
 Dans cette étude, c'est le deuxième qui est le meilleur car il a l'AIC la plus faible. Cela voudrait dire que la magnitude et le volume sont des bons prédicteurs pour le type de magma.
 
 Cependant le problème est le suivant, les écarts types sont beaucoup trop petits. Le modèle va donc sur estimé les coefficients des classes qui ne sont pas du tout supperposée. Même si il y a un petit chevauchement, les classes extrêmes sont parfaitement séparés, c'est un cas de sépration quasi-complètes. De plus, un autre facteur qui joue sur ces écart-types est le nombre d'échantillon. Le nombre de volcans dans cette étude n'est pas suffisant pour réaliser un modèle cohérent. 
 
-```{r}
+```{r include=FALSE}
 model <- multinom(Volcanoes~ Magnitude , data = df)
 model1 <- multinom(Volcanoes~ Magnitude + Depth, data = df)
 model2 <- multinom(Volcanoes~ Magnitude + Depth + Volume, data = df)
 ```
+
 ```{r}
-summary(model)
+s4 <- summary(model)
 ```
 ```{r}
-summary(model1)
+s5 <- summary(model1)
 ```
 ```{r}
-summary(model2)
+s6 <- summary(model2)
 ```
 
 
