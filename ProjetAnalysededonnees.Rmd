@@ -1195,9 +1195,6 @@ ggplot(df) +  geom_point(aes(x = Magnitude, y = Depth, color = Volcanoes), size 
   theme_minimal ()
 
 ```
-
-
-
 ## ACP 
 
 L'ACP est une analyse en composantes principales. Celle-ci permet d'analyser les relations entre plusieurs variables quantitatives. Ici, l'ACP est réalisée à partir des variables Depth, Magnitude et Volume. 
@@ -1233,7 +1230,17 @@ La magnitude et le volume sont positivement corrélés. A l'inverse la profondeu
 ```{r}
 fviz_pca_var(acp_sect, col.var = "cos2", gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),labelsize = 3)
 ```
-A partir de ce grapique, il est possible de voir que la plupart des volcans sont regroupés dans la partie droite du graphique. 
+A partir de ce grapique, il est possible de voir que : 
+
+- La profondeur pointe vers le haut-gauche. Les échantillons situés dans la même direction sont caractérisés par des profondeurs plus importantes. 
+
+- La magnitude et le volume pointent ver la droite. Les échantillons situés dans la même direction voient leur magnitude et leur volume plus impportant. 
+
+- la plupart des volcans sont située autour du centre ou du côté positif de Dim1 .Ce qui veut dire qu'ils présentent des caractéristiques relativement proches. 
+
+- certaines valeurs sont plus éloignées, comme pour le volcan Nisyros et Lipari. Ce qui est en accord avec ce qu'il a été vu précédement. Ces deux volcans avec des valeurs d'origine de profondeur du magma beaucoup plus élevé que la moyenne globale. De plus au niveau du volume, il y a également Santorin qui se détache ce qui est également en adéquation avec les analyses précédente. 
+
+
 
 ```{r}
 fviz_pca_biplot(acp_sect,
@@ -1251,6 +1258,7 @@ fviz_pca_biplot(acp_sect,
 
 ```
 
+En majorité, les volcans sont quand même en moyenne auu centre du graphique et proche les uns des autres. Il est important de préciser que cette étude ne comporte pas suffisament de données. Avec plus de données, les tendances déjà observée ici pourrait être encore plus dessinée. Comme le fait que plus le volume augmente, plus la magnitude augmente. Ainsi que le fait que la profondeur n'est pas vraiment lié au deux autres variables. Toute ces observations avaient déjà été réalisée à partir des analyses précédente. 
 
 # Equation logistique multinomiale
 
