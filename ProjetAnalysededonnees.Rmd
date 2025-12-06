@@ -1,10 +1,12 @@
 ---
 title: "Projet d'analyse de données - Études sur les volcans méditerranéens"
 author: |
-  <em>Jacobs Sofia & Bauer Julie<br>
+  <em><br>
+  Jacobs Sofia & Bauer Julie<br>
   Master STPE/MV – UCA<br>
-  Année académique 2025-2026</em>
-date: "<span style='float:right;'>25 septembre 2025</span>"
+  Année académique 2025-2026
+  </em>
+date: "<span style='float:right;'>9 décembre 2025</span>"
 output: 
   html_document:
     toc: yes
@@ -21,8 +23,10 @@ knitr::opts_chunk$set(echo = FALSE,message = FALSE)
 ```
 
 ```{r}
-df <- read.csv("DataR.csv", sep = ";")#importation des données
+df <- read.csv("DataR.csv", sep = ";")
 ```
+
+
 ```{r include=FALSE}
 packages <- c("dplyr", "ggplot2", "tidyr","performance","car","maps","ggspatial","sf", "prettymapr","rnaturalearth","rnaturalearthdata","viridis","see","patchwork","geosphere","reshape2","cowplot","factoextra","FactoMineR","plotly","PerformanceAnalytics","ade4","pheatmap","ggsci","nnet")
 
@@ -42,12 +46,12 @@ invisible(lapply(packages, function(pkg) {
 ```
 # Introduction 
 
-Dans le monde, on compte plus de **800 millions** de personnes vivant à proximité d’un volcan dont **200 millions à moins de 30 km d’un volcan actif** (CNRS, 2025). La caractérisation de l’aléa volcanique est donc essentielle pour **la sureté des habitants** en territoires volcaniques. Cela passe notamment par la compréhension de lien divers entre un volcan et **le type de dépôts ou l’intensité éruptive** qu’il produit. Notre étude se concentre sur la région méditerranéenne, en particulier sur **deux édifices grecs** et **quatre édifices italiens**, ces deux pays étant particulièrement connues pour leurs volcanismes très actifs et notamment plusieurs éruptions historiques. 
+Dans le monde, plus de **800 millions** de personnes vivent à proximité d’un volcan dont **200 millions à moins de 30 km d’un volcan actif** (CNRS, 2025). La caractérisation de l’aléa volcanique est donc essentielle pour **la sureté des habitants** en territoires volcaniques. Cela repose notamment sur la compréhension des lien divers entre un volcan et **les types de dépôts, l’intensité éruptive** ou encore **la nature du magma** qu'il génère. 
+
+Cette étude se concentre sur la région méditerranéenne et plus précisément sur **6 édifices actifs** : **quatre édifices italiens** et **deux édifices grecs**. La période étudié s'étend de 2015 à 2025. 
 
 ```{r}
 world <- ne_countries(scale = "medium", returnclass = "sf")
-
-# Tracer la carte
 ggplot(data = world) +
   geom_sf(fill = "antiquewhite") +
   geom_point(
@@ -65,12 +69,9 @@ ggplot(data = world) +
   ) +
   theme(panel.background = element_rect(fill = "lightblue"),
         panel.grid = element_line(color = "white"))
-
-
-
 ```
 
-Les volcans italiens sont **l’Etna (Sicile, Italie), le Vésuve (Naples, sud de l’Italie), Lipari et Vulcano (Iles Eoliennes, Sicile, Italie). Les volcans grecques sont le Santorin et le Nisyros (Iles Dodecanese, Grèce)**. Ici nous ne nous concentrerons que sur **la période 2015 à 2025**.
+Les volcans italiens sont **l’Etna (Sicile, Italie), le Vésuve (Naples, sud de l’Italie), Lipari et Vulcano (Iles Eoliennes, Sicile, Italie)**.  
 
 ```{r}
 volcanIt <- df[15:36,]
@@ -95,6 +96,8 @@ ggplot(data = world) +
 
 ```
 
+Les volcans grecques sont **le Santorin et le Nisyros (Iles Dodecanese, Grèce)**.
+
 ```{r}
 volcanGr <- df[c(1:13,37:47),]
 ggplot(data = world) +
@@ -116,22 +119,26 @@ ggplot(data = world) +
         panel.grid = element_line(color = "white"))
 ```
 
-Nous avons **les données de magnitudes, types de magma, profondeur du magma, le VEI, la classification et le volume estimé de produits** pour chaque édifice volcanique en plus des coordonnées des éruptions pour chaque édifices.
-L’objectif est de comprendre si il existe un **lien entre intensité de l’éruption (magnitude) et l’édifice volcanique** afin de déterminer quelle population s’expose à un **risque** plus important. Il sera aussi particulièrement intéressant de regarder le **lien possible entre volcans et type de magma** car le risques lié à un volcan est en partie du au type de matériaux qu’il produit. Ces résultats pourrait également nous permettre de déterminer si **les populations** d’un volcan en particulier s’exposent à un **risque accrue**. Enfin, d’un point de vus purement recherche nous allons nous intéressé au **lien entre édifice et profondeur du magma** car c’est grâce à la détection du magma en profondeur que l’on peut **anticiper une éruption**. Egalement à **la profondeur en fonction du type de magma** mais cela nous permettra, au terme d’une étude pétrologique ultérieure de prédire des **temps de remonté du magma et des durées pré-éruptifs** afin **d’alerter la population** en cas d’éruption imminente si ce lien existe.
+Les données disponibles sont comme **les magnitudes**, **les types de magma**, **les profondeur du magma**, le **VEI**, la **classification des éruptions**, ainsi que le **les volumes estimés des produits** pour chaque édifices.
+
+L’objectif principal est de déterminer si il existe un **lien statistique entre la magnitude et l’édifice volcanique** afin d'identifier quelle population s’expose plus à un **risque** important. Il sera aussi particulièrement intéressant de regarder le **lien possible entre le volcan et le type de magma**, paramètre influant sur la dynamique des éruptions et donc de l'aléa. 
+
+Enfin, l'étude évalue également l'**intéraction possible entre l'édifice et la profondeur du magma**, ainsi que la variation de cette **profondeur en fonction du type de magma**. Ces éléments peuvent contribuer à une meilleur compréhension des processus pré-éruptifs et permettre d'améliorer la surveillance des édifices volcaniques. 
+
 
 # Analyse exploiratoire des données 
 
 ## Chargement et préparation des données
 
-Les données ont été chargée et modifier pour avoir les bons types de variables. De plus, le **summary** a déjà permis d'obtenir pour les variables numériques : **le maximum**, **le minimum**, **la moyenne** et **la médiane**. 
-
-Au niveau des volcans, il est important de préciser que pour le Vesuve il n'y a qu'une **seule éruption** prise en compte dans cette étude. 
-
 ```{r include=FALSE}
 df [,c(1,2,8,11,12,13,14)]<- lapply(df[,c(1,2,8,11,12,13,14)], as.factor)
 df$Volume <- as.numeric(df$Volume)
-
 ```
+
+Les données ont été chargée et modifier pour avoir les bons types de variables. Le jeu de donnée est composé de 47 observation et de 14 variables. La variable Volume a été calculée à partir des données de magnitudes. Cette nouvelle variable a permis d'également déterminé le VEI ainsi que la classification éruptives des volcans. 
+
+De plus, le **summary** a déjà permis d'obtenir pour les variables numériques : **le maximum**, **le minimum**, **la moyenne** et **la médiane**. Une synthèse est proposée dans le tableau ci-dessous :
+
 | Variable            | Type          | Résumé / Statistiques principales |
 |--------------------|---------------|----------------------------------|
 | **Volcanoes**      | Catégorielle  | Santorin (13), Nisyros (11), Lipari (9), Vulcano (6), Etna (7), Vesuvio (1) |
@@ -146,7 +153,22 @@ df$Volume <- as.numeric(df$Volume)
 | **Region**         | Catégorielle  | Dodecanese Islands (24), Sicily (22), Southern (1) |
 | **Country**        | Catégorielle  | Greece (24), Italy (23) |
 
+La variable **Mag.Type** correspond au type de magma produit par le volcan lors de l'éruption. Les différentes catégories de magma sont définies comme suit :
+
+| Code  | Description                          |
+|-------|--------------------------------------|
+| **MB**    | Magma basaltique                     |
+| **ML**    | Magma latitique                      |
+| **MA**    | Magma andésitique                    |
+| **MR**    | Magma rhyolitique                    |
+| **MB-MA** | Magma basaltique à andésitique       |
+| **MBa**   | Magma basaltique alcalin             |
+
+Enfin, il est important de préciser que pour le **Vesuve** il n'y a qu'une **seule observation** prise en compte dans cette étude. L'absence de plusieurs informations ne permettra pas de comparer les données pour ce volcan par rapport au autres. 
+
 ## Calcul des distances entre les volcans
+
+Cette section permet de visualiser les distances entre les différents volcans étudiés en km. 
 
 ```{r}
 
@@ -173,6 +195,10 @@ ggplot(dist_long, aes(x = Volcano1, y = Volcano2, fill = Distance_km)) +
 
 
 ## Calcule des paramètres de dispersions
+
+L'objectif de cette section eest de calculer les principales statistiques descriptives (variance, moyenne, médiane, minimum et maximum) pour les variables numériques **Depth**, **Magnitude** et **Volume** à la fois pour l'ensemble des volcans (global) et pour chaque volcan individuellement.
+
+Avant toute analyse, il est important de précisé que le nombre de données par volcans n'est surement pas suffisante pour réaliser des statistiques les plus optimales possible. 
 
 ```{r include=FALSE}
 calc_stats_by_group <- function(df, group_col = "Group", numeric_vars = NULL) {
@@ -244,14 +270,6 @@ calc_stats_by_group(df, group_col = "Volcanoes",
 
 ```
 
-En moyenne, **Lipari génère des magmas qui viennent de plus profond** et le **Santorin les plus superficiels***.
-**Nisyros est le volcan avec le plus grand volume** de produit estimé en moyenne et **Vulcano emet le moins** sur une même période d'activité.
-La **magnitude des éruptions est en moyenne plus importante pour Nisyros**. Cela est cohérent car la magnitude est directement reliée au volume emis, plus le volume est important plus la magnitude le sera, hors Nisyros à le volume moyen le plus important donc la magnitude moyenne la plus importante. **Cependant ce n'est pas Vulcano qui possède la plus faible moyenne des magnitudes mais l'Etna**. Cela peut s'expliquer par le faite que **l'Etna à plus érupter sur 2015-2025 par rapport à Vulcano pour un volume moyen de débris légèrement inférieur**. La moyenne des magnitudes de l'Etna pourra donc être légèrement plus faible que celle de Vulcano.
-
-Les valeurs de variance pour le volume et la magnitude sont ccohérentes par rapport au jeu de donné mais pour la **profondeur**, celles-ci sont beaucoup trop grande, cela s'explique par la présence d'**outlier (7 point de donnée)** de valeur beaucoup trop importante ou encore bien trop faibe qui donnent une dispersion des mesures exagérée.
-
-On remarque qur pour le **Vésuve nous n'avons qu'une seule éruption**. Ainsi, nous ne pouvons **pas calsuler de valeurs de dispersion** et la profondeurs, la magnitude et le volume moyen seront les valeurs des données de l'éruption.
-
 | Groupe    | Variable   | Variance               | Moyenne       | Médiane     | Min       | Max          |
 |-----------|------------|-----------------------|---------------|-------------|-----------|--------------|
 | Global    | Depth      | 2683.43422            | 27.56902      | 10.00       | 0.00      | 225.420      |
@@ -276,27 +294,56 @@ On remarque qur pour le **Vésuve nous n'avons qu'une seule éruption**. Ainsi, 
 | Nisyros   | Magnitude  | 1.45855               | 3.33636       | 2.80	       | 1.90      | 5.300        |
 | Nisyros   | Volume     | 5.7457176×10¹⁶        | 1.150703×10⁸  | 2523829.38	 | 317731.29 | 798104926.000|
 
+### Profondeur moyenne d'origine des magmas 
+
+En moyenne, **Lipari présentent les profondeurs les plus importantes**. A l'inverse, **Santorin est le volcan dont les magmas sont les plus superficiels**.
+
+Cependant, la variance des profondeurs pour Lipari est très importante, cela s'explique par la présence d'**outliers** (7 points de données) qui augmentent considérablement la dispersion des mesures. Ce phènomène peut être du soit à des erreurs de messures, soit des porcessus magmatiques plus complexes. 
+
+### Volume des produits éruptifs
+
+**Nisyros est le volcan ayant émis les volumes les plus importants** durant la période 2015-2025. A l'opposé,**Vulcano** est celui qui présente le volume **le plus faibles**.
+
+Comme pour les profondeurs, ces valeurs doivent être interprétées avec prudence au vue de la variance importante des données. 
+
+### Magnitude des éruptions
+
+La **magnitude des éruptions est en moyenne plus importante pour Nisyros**. Cela est cohérent avec les valeurs moyennes pour le volume. La magnitude est directement reliée au volume emis, plus le volume est important plus la magnitude le sera. 
+
+**Cependant, ce n'est pas Vulcano qui possède la plus faible moyenne des magnitudes mais l'Etna**. Cela peut s'expliquer par le faite que **l'Etna à émis plus de petites éruptions** sur 2015-2025 que Vulcano. 
+
+En conclusion, l'analyse des paramètres de dispersion montre que les **volcans grecs** produisent des éurptions avec des magnitudes plus variées (1.2 à 5.3) par rapport aux**les volcans Italiens**. Ceux-ci ont une variabilité plus modérées, à l'exception de Lipari qui produit des volumes et des magntides élevées. 
+
+Les différentes variables numériques ne sont cependant pas dans les mêmes unités, il est donc important de regarder les **coefficients de variation (CV)** pour comparer la dispersion relative des données. Dans cette étude, malgré les quelques valeurs extrêmes, la dispetion des paramètres **reste comparable** entre les volcans. 
 
 ```{r include=FALSE}
-#à quoi ça sert (je ne sais pas), pas vraiment utile 
 df_quant <- df[,c("Depth","Magnitude","Volume")]
 apply(df_quant,2,sd)
 apply(df_quant,2,sd)/apply(df_quant,2,mean)
 ```
 | Variable   | Écart-type (sd)     | Coefficient de variation (CV) |
-|------------|----------------------|-------------------------------|
+|------------|---------------------|-------------------------------|
 | Depth      | 5.18×10¹            | 1.88                          |
 | Magnitude  | 1.25                | 0.45                          |
 | Volume     | 1.26×10⁸            | 2.52                          |
 
 
-Les *volcans grecs porduisent une plus large gamme d'éruption de magnitudes différentes* que les volacans Italiens et se sont égalment eux qui produisent les *éruptions les plus intenses avec Lipari*. Cependant, il n'y pas de grande difference entre les différents paramètres de dispersion des les volcans.
-
 # Graphiques des analyses univariés
 
 ## Analyse univariée de la profondeur
 
-Pour **l'ensemble des volcans, hormis les 7 outliers visibles en rouge sur le boxplot, la répartition des pofondeurs sur l'hitogramme est symétique par rapport à une valeur centrale de 10 km**. La majorité de nos magmas* proviennet donc de **chambre localsiée entre 15 et 7 km** ce qui reste relativement **superficielle**.
+L'analyse de la profondeur des magmas montre une distribution **hétérogène**. C'est pour cela que sur le boxplot, il s'agit d'une échelle logarithmique afin de réduire cette plage de valeurs. 
+
+Au niveau du boxplot, il est possible d'observer : 
+
+- **7 outliers** (points rouges) qui correspondent à des profondeurs très importantes (supérieures à 100 km). Ces valeurs extrêmes peuvent influencer la moyenne et la variance des données.
+- médiane (ligne noire au milieu de la boîte) située **autour de 10**.
+- moyenne (point bleu) légèrement supérieure à la médiane, ce qui indique une **légère asymétrie positive** dans la distribution des profondeurs.
+
+Au niveau de l'histogramme, c'est la distribution brute qui est observée : 
+
+- forte concentration des profondeurs entre **5 et 20 km**
+- la **densité** montre une distribution très **asymétrique**. 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -338,9 +385,21 @@ des magmas",
 p + p1 + plot_layout(widths = c(5, 5))
 ```
 
+
+
 ## Analyse univariée de la magnitude
 
-Nous n'avons pasde **pas de valeur abérente**. On a une **réputation bimodale des données**. Une première partie des magnitudes se situe en dessous de **3**, ce sont les **valeurs de magnétudes faibles** et une seconde partie se trouve au-dessus de 3 avec des **valeurs dites fortes**.
+La distribution des maagnitudes éruptives ne montrent pas **de valeurs abérentes**. Au niveau de boxplot : 
+
+- la médiane (ligne noire au milieu de la boîte) est située **entre 2 et 3**.
+- la moyenne (point bleu) est légèrement supérieure à la médiane, indiquant une légère asymétrie positive dans la distribution des magnitudes.
+
+Au niveau de l'histogramme : 
+
+- Deux pics sont visibles : l'un au niveau de 2 et l'autre entre 4 et 5. Cela traduit une distribution bimodale 
+- la courbe de densité permet de mieux visualiser cette bimodalité. 
+
+Il y ainsi une **séparation entre deux groupes**. L'un avec des magnitudes faibles et l'autre avec des magnitudes fortes. 
 
 ```{r}
 p2 <- ggplot(df, aes(x = Magnitude)) +
@@ -377,7 +436,7 @@ p3 <- ggplot(df, aes(x = "", y = Magnitude)) +
 
 p3+p2+plot_layout(widths = c(1,1.5))
 ```
-Les **fortes magnitudes ont une distribution sysmétrique** qui s'articule autour d'une **valeur centrale de 4,3** tandis que les **faibles magnitudes** suivent aussi une **distribution sysmétrique** autour de **1,8** mais reste moins marqué et s'étale dans **l'intervalle 1 à 2,2**.
+Les **fortes magnitudes ont une distribution sysmétrique** qui s'articule autour d'une **valeur centrale de 4,3**. Cela se rapproche plus d'une loi normale tandis que les **faibles magnitudes** ont une distribution **plus étalée et moins structurée**. 
 
 ```{r}
 df_forte  <- df[df$Magnitude >= 3, ]
@@ -411,7 +470,9 @@ p5 + p4 + plot_layout(widths = c(1, 1))
 
 ## Analyse univariée du volume estimé
 
-Pour les **volumes estimés**, on montrent également une **répartition bimodale tres similaire à celle des magnitudes** avec une valeur intermétidaiure entre les faibles et les forts volumes de **16,25 km3**. Les **forts volumes** s'articulent autour d'un mode de **18,7 km3** et la **faibles volumes** autoure de **12,5 km3** mais cela reste moins symétirque et forme plus un plateau. **Les volumes estimés sont utilisés pour déterminer la magnitude de l'érution, il est donc logique qu'il suivent excatement la meme distibution pour l'hitogramme et le boxplot**.
+Pour les **volumes estimés**, on montrent également une **répartition bimodale très similaire à celle des magnitudes** avec une valeur intermédiaire entre les  volumes faibles et forts de **16,25 km3**. 
+
+**Les volumes estimés sont utilisés pour déterminer la magnitude de l'érution, il est donc logique qu'il suivent excatement la même distibution pour l'histogramme et le boxplot**.
 
 ```{r}
 p6 <- ggplot(df, aes(x = log(Volume))) +
@@ -428,7 +489,7 @@ p6 <- ggplot(df, aes(x = log(Volume))) +
   theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 12))
 
 
-p7 <- ggplot(df, aes(x="", y = Volume)) +
+p7 <- ggplot(df, aes(x="", y = log(Volume))) +
   geom_boxplot(outlier.shape = 16, outlier.color = "red", alpha = 0.7) +  
   stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "blue") + 
   scale_fill_viridis(discrete = TRUE, option = "D") +  
@@ -451,7 +512,9 @@ p7+p6+plot_layout(widths = c(1,2.5))
 
 ## Analyse univariée du type de magma
 
-La majorité des magmas sont basaltique (MB) avec quelques occurences andésitique (MA) et latitique (ML=un magma latitique est un magma basaltique avec une texture particulière, il n'y a pas de différence de chimie importante). La série est basic et donc faiblement différencié. En effet il n'y a quaiment pas de magma différencié rhyolique (MR). La faible présence de basalte alcalin (MBa) révelle que les magmas générés appartiennen à la série subalcaline. Enfin, il se produit un petit peu de mélande car 3 magmas on uen composition intermédiaire entre basaltique et andésitique (MB-MA).
+La majorité des magmas sont **basaltique (MB)** avec quelques occurences **andésitique (MA)** et **latitique** (ML=un magma latitique est un magma basaltique avec une texture particulière, il n'y a pas de différence de chimie importante). 
+
+La série magmatique est globalement basique et faiblement différenciée, comme en témoigne **l'absence quasiment totale de magmas rhyolitiques**. **La faible présence de basalte alcalin (MBa)** indique que les magmas générés appartiennent principalement à **la série subalcaline**. Enfin, il y a **un faible nombre de magmas intermédiaires** (MB-MA) suggère l'existence de mélanges magmatiques entre ces deux compositions. 
 
 ```{r}
 ggplot(df,aes(x=Mag.Type))+
@@ -465,7 +528,9 @@ ggplot(df,aes(x=Mag.Type))+
 
 ## Analyse univariée du VEI estimé
 
-Le VEI est une échelle de 1 à 8 donnant l'intensité d'une éruption volcanique (1 tres peu intense et 8 extremement intense). Dans la région, **la majorité des éruptions sont de faible intensité** avec un VEI autour de **1** et **2** (plus de 30 cas), **VEI 1 étant majoritaire**. On enregistre des éruption peu à moyennement intense (3 à 4), mais elles restent minoritaire. Il n'y a aucune éruption avec un VEI supérieure à 4, ce qui est rassurant puisque les grosses éruptions ont une occurences de plusieurs centaines d'année et sont donc difficilement visible sur une période de 10 ans.
+Le VEI est une échelle de 1 à 8 donnant l'intensité d'une éruption volcanique, de 1 pour les éruptions très peu intenses à 8 pour les évènements extrême. Dans la région étudiée, **la majorité des éruptions sont de faible intensité** avec des valeurs de VEI **1** à **2** (environ 30 occurances), avec **VEI 1** qui est **majoritaire**. 
+
+Des éruption faiblement à moyennement intense (3 à 4) sont également enregistrées, mais elles restent minoritaire. Il n'y a aucune éruption avec un VEI supérieure à 4, ce qui est rassurant puisque les grosses éruptions ont une occurences de plusieurs centaines d'année et sont donc difficilement visible sur une période de 10 ans.
 
 ```{r}
 ggplot(df, aes(x = VEI.approximatif)) +
@@ -480,15 +545,17 @@ ggplot(df, aes(x = VEI.approximatif)) +
 
 # Analyse bivariés
 
-Cette analyse univarié a permis de déterminer l'allure de chacune des variables du jeu données. Il est a présent possible d'étudier des liens possibles entre ces différentes données.
+Cette analyse univarié a permis de déterminer l'allure de chacune des variables du jeu données. Il est a présent possible d'étudier des relations entres ces différentes variables.
 
 ## Lien entre deux variables quantitatives
 
 ### Lien entre la magnitude et la profondeur 
 
-**5 outliers** sont visble ce qui confirme nos obeservation faites dans l'univariée avec des points de profondeur beaucoup trop importante.
-Il n'y a **aucune corélation visible entre la profondeur et la magnétude**.
-Nous allons quand même effectuer un test pour vérifeir notre hypothèse. Il n'est pas possible de faire une ANOVA car nous avons de variables quantitatives et l'ANOVA compare deux moyennes de deux goupres, hors ici nous cherchons à corréler deux varables. Nous effectuons donc un **test de corrélation**.
+Tout d'abord, **5 outliers** sont visibles confirmant les observations faites dans l'univariée avec des points de profondeur beaucoup trop importante.
+
+Le graphique permet d'observer qu'il n'y a **aucune corélation visible entre la profondeur et la magnétude**. Un test de corrélation peut tout de même être réaliser. Cependant, ce ne sera pas la méthode de Pearson mais la méthode de Spearman car les données ne sont pas distribuées de manière normale. Il s'agit d'un test qui est dit non paramétrique. Ce ne sont pas les données en tant que telle qui sont utilisées mais leurs rangs.
+
+
 
 ```{r}
 
@@ -505,15 +572,38 @@ ggplot(df) +  geom_point(aes(x = Magnitude, y = Depth), size = 1) +
 
 
 ```{r}
-co <- cor(df$Magnitude, df$Depth, method = "spearman")#pas de corrélation entre les deux variables 
+co <- cor(df$Magnitude, df$Depth, method = "spearman") 
 ```
-
-Un test de **corrélation de Spearman** est choisit car les données ne sont pas distribuées normalement (voir histogramme). Il s'agit d'un test qui est dit non paramétrique. Ce ne sont pas les données en tant que telle qui sont utilisées mais leurs rangs.
 
 Le **coefficient de corrélation** est de  **`r co[1] `**  . C'est une corrélation positive mais la valuer reste **faible** car comprise entre 0.1 et 0.3 à plus ou moins 0.02, on a donc une **faible corrélation entre la profondeur et la magnitude**.
 
+Pour aller plus loin, il est possible de retirer les outliers et de refaire l'analyse.
+
+```{r}
+non_outliers <- df[df$Depth < 100, ]
+```
+
+```{r}
+ggplot(non_outliers) +  geom_point(aes(x = Magnitude, y = Depth), size = 1) +
+  labs(
+    title = "Distribution de la magnitude des volcans en fonction de la profondeur du magma (sans outliers)",
+    x = "Magnitude",
+    y = "Profondeur (km)"
+  ) +
+  theme_minimal ()
+```
+
+
+
+```{r}
+co.1 <- cor(non_outliers$Magnitude, non_outliers$Depth, method = "spearman")
+co.1
+```
+Le **coefficient de corrélation** est de  **`r co.1[1] `**  . La corrélation est possitive mais elle encore plus **faible** qu'avec les outliers. Ce phénomène est normal car étant donné que Spearman est basé sur les rangs, les valeurs extrêmes présentent vont faire augmenter le coefficient de corrélation. 
+
 ### Lien entre magnitude et le volume estimé
 
+Le graphique permet d'observer une relation linéaire positive entre volume et la magnitude. En effet, plus la magnitude est importante plus le volume. Afin de vérifier cela, un modèle de regression linéaire est réalisé. 
 
 ```{r}
 
@@ -521,24 +611,37 @@ ggplot(df) +  geom_point(aes(x = Magnitude, y = log(Volume)), size = 1) +
   labs(
     title = "Distribution des volumes estimés des volcans en fonction de la magnitude",
     x = "Magnitude",
-    y = "Volume"
+    y = "log(Volume)"
   ) +
   theme_minimal ()
 res <- lm(log(Volume)~Magnitude,data=df)
 
 ```
+Il faut tout d'abord vérifier les hypothèses du modèle linéaire :
 
+1. **Relation linéraire entre les deux variables** : ici cette condition est bien respectée. 
+2. **Les résidus doivent être normalement distribués** : des valeurs s'éloignent de la ligne droite donc cette condition n'est pas respectée. 
+3. **L'homoscédasticité doit être respectée (variance constante des résidus)**: ici cette condition n'est pas respectée car la ligne rouge orange n'est pas horizontale donc cela veut dire que les résidus n'ont pas une variance identique. 
+4.	Influence des observations individuelles : quelques points semblent avoir une influence importante sur le modèle, mais dans l'ensemble, il n'y a pas de points extrêmement influents.
+ 
+ Il n'est donc ainsi pas possible de réaliser le modèle de régression linéraire car aucune des conditions n'est respectée.
 ```{r}
 par(mfrow = c(2,2))
 plot(res)
 par(mfrow = c(1,1))
 ```
+Il est de même possible de mesurer la corrélation entre les deux variables. 
+```{r}
+co.v<- cor(df$Magnitude, log(df$Volume), method = "spearman")
 
-On observe une **corrélation positive entre la magnitude et le volume estimé**. En effet, plus la magnitude est importante plus le volume estimé l'est également. Le modèle linéaire confirme cette observation avec un **$R^2$ de 1** ce qui est très élevé. Cependant, il existe une **realtion théorique entre volume estimé et magnitude**. La magnitude est calculer à parit du volume estimée sur le terrain. Ils sont donc mathéatiquement reléi l'un à l'autre et cette correlétion poistive ne reflete en rien un lien naturel entre les deux varibale mais traduits une simple équation mathématiques.
+```
+Le **coefficient de corrélation** est de  **`r co.v[1] `**. Il est normal que la corrélation soit de 1 car la méthode de Spearman est robuste aux écarts de valeur. 
+
+Cette relation ne peut tout de même pas être interprété e car le volume est estimé à partir de la magnitude donc il est normal qu'il y est une relation entre les deux. 
 
 ### Lien entre le volume et la profondeur 
 
-
+Il est également possible d'étudier la relation entre le volume estimé et la profondeur.  Cependant, étant donné que le volume a été estimé à partir de la magnitude, les deux graphiques montrent exactement les mêmes tendances.
 
 ```{r}
 ggplot(df) +  geom_point(aes(x = log(Volume), y = Depth), size = 1) +
@@ -554,20 +657,29 @@ ggplot(df) +  geom_point(aes(x = log(Volume), y = Depth), size = 1) +
 co.1 <- cor(log(df$Volume), df$Depth, method = "spearman")
 ```
 
-Une relation peut également être étudiée entre le volume estimé et la profondeur. Cependant, étant donné que le volume a été estimé à partir de la magnitude, les deux graphiques montrent exactement les mêmes tendances. **Cette similitude se remarque également au niveau de la valeur du coefficient de corrélation de Spearman qui vaut r `co.1[1]`.**
+ Cette similitude se remarque également au niveau de la valeur du coefficient de corrélation de Spearman qui vaut **`r round(co.1[1],3)`.**
 
 ## Lien entre variable qualitative et quantitative
 
 ### Magnitude en fonction des volcans
 
-On remarque à nouveau que pour le Vésuve, on ne peut interpréter car on a qu'une seule varleur.
-Plusieurs remarques sont possibles. Tout d'abords, les **magnitudes par volcans sont dépendantes**, sinon l'ensembles des médianes seraient alignées. 
+L'objectif est d'observer si il y a une différence de magnitude entre les différents volcans.
 
-De plus, **la médiane et la moyenne ne coincident pas**, ce qui témoignent d'une **asymétries des distributions**.
+Au niveau des boxplots : 
 
-Dans certains cas, les **courbes de densité** montrent également des **bimodalités** visibles. 
+- Les médianes des volcans sont différentes les unes des autres. 
 
-Il est possible d'observer que **certains groupes ont des distributions bimodal et non pas juste normal**. 
+- **La médiane et la moyenne ne coincident pas**, ce qui témoignent d'une **asymétries des distributions**.
+
+Au niveau du Dotplot : 
+
+- Il est possible d'observer que les données ne sont pas uniformes pour chaque volcan.
+
+- Certains volcans, comme Santorin ont des clusters autour de 2 et 4, tandis que d'autres, comme Etna, ont une répartition plus uniforme des magnitudes. 
+
+Au niveau des courbes de densité : 
+
+- Certains volcans, comme Santorin et Nisyros, ont une distributions bimodales avec deux pics distincts, tandis que d'autres, comme Etna, ont une distribution plus unimodale.
 
 
 
@@ -611,14 +723,12 @@ p3 <- ggplot(df, aes(x = Magnitude, fill = Volcanoes)) +
 plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
 ```
 
-Si on veut observer une différence entre les volcans par rapport à la magnitude, on effectuer un **test non-paramétrique**. Un ANOVA ne fonctionnerait pas ici car nous n'avons une répartition normale de nos donnée de magnitude.
-
-Il serait intéressant de savoir si il y a bien une différence significative entre ces différents volcans par rapport à la magnitude. Pour cela, le t.test ne fonctionne pas car celui-ci est pour des échantillons avec deux catégories dans cette étude, il y a six volcans différents. C'est donc une **ANOVA** qui va être réalisée. 
+Si on veut observer une différence entre les volcans par rapport à la magnitude, le t.test ne fonctionne pas car celui-ci est pour des échantillons avec deux catégories dans cette étude, il y a six volcans différents. C'est donc une **ANOVA** qui va être réalisée.
 
 L'ANOVA (Analysis of Variance) permet de comparer les moyennes de plusieurs groupes pour déterminer s'il existe des différences significatives entre elles. Cependant, pour que les **résultats de l'ANOVA soient valides**, certaines **conditions** doivent être remplies :
 1. **Indépendance des observations **: Les données de chaque groupe doivent être indépendantes les unes des autres. 
-2. **Normalité** : La distribution des résidus (différences entre les valeurs observées et les valeurs prédites) doit suivre une distribution normale.
-3.** Homogénéité des variances** : Les variances des différents groupes doivent être similaires (homoscédasticité).
+2. **Normalité** : La distribution des résidus doit suivre une distribution normale. Ici, cette condition n'a pas été respectée. 
+3. **Homogénéité des variances** : Les variances des différents groupes doivent être similaires (homoscédasticité). La ligne rouge n'est pas à l'horizontale donc cette condition n'est pas respectée. 
 
 ```{r}
 aov1 <- aov(Magnitude ~ Volcanoes, data = df)
@@ -628,30 +738,40 @@ par(opar)
 ```
 
 
-
 ```{r}
-leveneTest(Magnitude ~ Volcanoes, data = df)#pas significatif donc cela veut dire que les variances ne sont pas hétéroscédastique, ce qui est étrange au vu du graphique précédent. Les résidus dévient également légèrement de la normalité
+le <- leveneTest(Magnitude ~ Volcanoes, data = df)
 ```
 
-Pas significatif donc cela veut dire que les variances ne sont pas hétéroscédastique, ce qui est étrange au vu du graphique précédent. Les résidus dévient également légèrement de la normalité
+Graphiquement, la ligne pour l'hétéroscédasticité n'est pas horizontale. Cependant, le test de Levene donne une **p-value de 0.187**. Même si l'hétéroscédasticité est respectée, la normalité des résidus ne l'est pas donc il n'est pas possible de réaliser une ANOVA.
+
+
+Il est tout de même possible de tester à partir d'un test non-paramétrique, le test de Kruskal-Wallis. Celui-ci ne nécessite pas que les données suivent une distribution normale, que les variances soient homogènes.
+
+Les hypothèses pour le test Kruskal-Wallis : 
+H0 : Les distributions des groupes sont identiques (pas de différence significative entre les groupes).
+H1 : Au moins une des distributions des groupes est différente (il y a une différence significative entre les groupes).
 
 ```{r}
-summary (aov1)
+kru <- kruskal.test(Magnitude ~ Volcanoes, data = df)
 ```
-Le summary de l'ANOVA, donne une valeur de **p-value de 0.264**. Celle-ci n'est **pas significative** (p-value > 0.05), il n'y a donc **pas de différence significative entre les volcans et les magnitudes**.
-
+Le summary du test de Kruskal-Wallis donne une **p-value de `r kru$p.value`. Cette p-valeur est supérieur à 0.05, il n'y a donc pas de différence significative entre les magnitudes entre les différents volcans. 
 
 ### Magnitude en fonction du type de magma
 
-Le lien entre la magnitude et le type de magma peut également être étudié. 
-==> Pour **MBa** et **MR**, il n'y a qu'**une seule valeur de magnitude**
-==> **Ma** présente les **magnitudes les plus élevées**
-==> **MB, MB-MA, ML** ont des **magnitudes plus similaire** entre elles
+L'objectif est d'observer si il y a une différence de magnitude entre les différents types de magmas.
 
-Au niveau du graphique de densité, il est possible de voir que : 
-==> **MA** présente une **distribution binomiale** mais la plupart de l'information se trouve quand même entre **4 et 5 au niveau des magnitudes**
- 
-==> **MBa,MB,ML la distribution est bi-nomiale**
+Au niveau des boxplots : 
+
+- Pour **MBa** et **MR**, il n'y a qu'**une seule valeur de magnitude**
+- **Ma** présente les **magnitudes les plus élevées** et une **faible dispersion**
+- **MB, MB-MA, ML** ont des dispersion plus importants.
+- La moyenne et la médiane ne coïncident pas, ce qui témoigne d'une asymétrie des distributions.
+
+Au niveau des courbes de densité : 
+
+- **MA** présente une distribution plutôt unimodal, dans des magnitudes fortes
+- **MB-MA** a une distribution bimodale avec deux pics distincts
+- **MB** et **ML** ont des distribution plus étalées
 
 
 ```{r message=FALSE, warning=FALSE}
@@ -694,10 +814,11 @@ p3 <- ggplot(df, aes(x = Magnitude, fill = Mag.Type)) +
 plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
 ```
 
-L'ANOVA doit ainsi respecter différents critères. Dans ce cas-ci : 
-  L'**homoscédadasticité est respectée**, il est possible de voir que la ligne rouge sur le graphique est presque à l'horizontale 
-  La **normalité des résidus est globalement respectée**. Cependant, certaines valeurs sont fortement éloignées de la droite centrale comme le 20 et le 42. 
-  Au niveau du quatrième graphique, l'ensemble des donnée située dans les bornes de la distance cook. Cependant, les valeurs 20, 40 et 42 sont tout de même proche de ces extrémités. Cela peut causer un **effet de levier**.
+L'ANOVA doit ainsi respecter différents critères. Dans ce cas-ci :
+
+- L'**homoscédadasticité est respectée**, il est possible de voir que la ligne rouge sur le graphique est presque à l'horizontale 
+- La **normalité des résidus est globalement respectée**. Cependant, certaines valeurs sont fortement éloignées de la droite centrale comme le 20 et le 42. 
+- Au niveau du quatrième graphique, l'ensemble des donnée située dans les bornes de la distance cook. Cependant, les valeurs 20, 40 et 42 sont tout de même proche de ces extrémités. Cela peut causer un **effet de levier**.
   
 ```{r}
 anova_magma <- aov(Magnitude ~ Mag.Type, data = df)
@@ -707,20 +828,30 @@ par(opar)
 ```
 
 ```{r}
-leveneTest(Magnitude ~ Mag.Type, data = df)#présence d'outlier au niveau de la normalité des résidus sinon au niveau des autres graphiques cela semble respecté les conditions de l'anova sont respectée
+le1 <- leveneTest(Magnitude ~ Mag.Type, data = df)#présence d'outlier au niveau de la normalité des résidus sinon au niveau des autres graphiques cela semble respecté les conditions de l'anova sont respectée
 ```
-
-L'ANOVA est ainsi réalisée, et celle-ci donne une **valeur significative** (p-valeur<0.05). Il y a ainsi **une différences entre les différents types de magmas au niveau de la magnitude**.
-
+e test de Levene donne une **p-value de 0.6581**. Ce qui est en accord avec l'observation graphique.
 
 ```{r}
-summary (anova_magma)#significatif donc il y a bien une différence entre les moyennes des magnitudes des différents types de magma
+aov3 <- summary (anova_magma)#significatif donc il y a bien une différence entre les moyennes des magnitudes des différents types de magma
 ```
 
-### Profondeur en fonction des volcans
+L'ANOVA est ainsi réalisée, et celle-ci donne une **valeur significative de `r aov3$p.value` **. Il y a ainsi une différences entre les différents types de magmas au niveau de la magnitude.
 
+### Profondeur en fonction des classifications des éruptions
 
-```{r}
+L'objectif est d'observer si il y a une différence de profondeur entre les différents volcans.
+
+Au niveau des boxplots :
+- Les médianes des classifications des types d'éruption sont relativement proches les unes des autres.
+- La moyenne et la médiane ne coïncident pas, ce qui témoigne d'une asymétrie des distributions.
+- Certaines classifications ont une dispersion des profondeurs plus importantes.
+
+Au niveau des courbes de densité :
+- Toutes les courbes ont un pic marqué vers 0-20 km. 
+- Les asymétries sont plutôt possitives
+
+```{r message=FALSE, warning=FALSE}
 p1 <- ggplot(df, aes(x = Classification, y = Depth, color = Classification)) +
   geom_boxplot(alpha = 0, width = 0.4, outlier.shape = NA) +
   stat_summary(fun = mean, geom = "point", shape = 20, size = 4) +
@@ -759,29 +890,20 @@ p3 <- ggplot(df, aes(x = Depth, fill = Classification)) +
 
 plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.1))
 ```
-**Il n'est pas possible d'observer une différence entre les différents types de magma.**
+Il n'est possible de réaliser une ANOVA car les conditions d'applications ne sont pas respectés. Les résidus ne sont pas normalement distribués et certaines des valeurs atteignent presque la distance de Cook.
 ```{r}
 anova_clas <- aov(Depth ~ Classification, data = df)
 opar <- par(mfrow = c(2, 2))
 plot(anova_clas)
 par(opar)
 ```
-
-
-```{r}
-leveneTest(Depth~ Classification, data = df)
-```
-
-Les **conditions de l'anova ne sont pas respectées**, les résidus ne sont pas normalement distribués. Certaines des valerus atteignes presque la Cook distance. 
-Il n'est ainsi pas possible de réaliser l'anova mais il est possible de réaliser un autre test qui lui est non paramétriques. Il s'agit du **test Kruskall-walis**.
+Il est tout de même possible de réaliser le **test Kruskall-walis**.
 
 ```{r}
-kruskal.test(Depth ~ Classification, data = df)
+kru1 <- kruskal.test(Depth ~ Classification, data = df)
 ```
 
-Le test de **kruskal-wallis est signifcatif**. Il faut préciser est sensible au différence de distributions donc si celles-ci sont fortement différentes comme c'est le cas ici il est **possible qu'il n'y est pas uniquement une différence au niveau des médianes**.
-
-
+Le test de **kruskal-wallis est signifcatif** avec une p-valeur de `r kru1$p.value`. Il faut préciser qu'il est sensible au différence de distributions donc si celles-ci sont fortement différentes comme c'est le cas ici il est **possible qu'il n'y est pas uniquement une différence au niveau des médianes**.
 
 ## Lien entre deux variables qualitatives
 
@@ -817,7 +939,13 @@ Dans ce cas-ci, le **test du chi 2 est significatif** car p-valeur > 0.05 (`r ch
 
 ### Répartition du type de magma en fonction des volcans
 
-Il est possible de voir que MA et MB sont les types de magmas les plus fréquents. 
+Il est ininteressant d'analyser si il y a un lien entre le type de magma et les volcans. 
+
+- Il y a une dominance des magmas balsatiques (MB), surtout au niveau de Lipari. 
+
+- Présence importante de magma latitique en majorité au niveau de Santorin. 
+
+- Le magma andésitique est observé au niveau de plusieurs volcans. 
 
 ```{r}
 ggplot (df, aes (x=Mag.Type)) +geom_bar (aes(fill = Volcanoes),position = "dodge")+
@@ -830,12 +958,14 @@ ggplot (df, aes (x=Mag.Type)) +geom_bar (aes(fill = Volcanoes),position = "dodge
 
 ```
 
-
+Le test de chi2 est également réalisé pour cette relation. 
 ```{r}
 tab <- table(df$Volcanoes, df$Mag.Type)
 chi.2 <- chisq.test(tab)
 #signifcatif car p-valeur <0.05
 ```
+Dans ce cas-ci, le **test du chi 2 est significatif** car p-valeur > 0.05 (`r chi.2$p.value`) . Cependant, cette valeur est tout de même proche 0.05 donc cette relation doit être prise avec précaution. 
+
 ### ACF
 
 Une ACF est une analyse factorielle des correspondances. Cela  permet d'**analyser la relation entre deux variables qualitatives**. Il est ainsi important qu'il est la **présence d'une relation entre les deux**. C'est pour cela que l'AFC est réalisé à partir des **variables Volcanoes et Mag.Type**. 
@@ -1052,6 +1182,8 @@ fviz_mca_var(
 ## Répartition de la magnitude en fonction de la profondeur et des volcans
 
 ### Représentation graphique 
+
+Il est possible de regarder la relation entre la profondeur et la magnitude en fonction des volcans. Cepedant, étant donnée que la relation entre la prodondeur et la magnitude ne donnaient déjà pas de relation, le rajout des volcans ne montrent aucun apport. 
  
 ```{r}
 ggplot(df) +  geom_point(aes(x = Magnitude, y = Depth, color = Volcanoes), size = 1.5) +
@@ -1093,11 +1225,15 @@ Le graphique de contribution permet d'observer quelles variables contribuent le 
 pheatmap(as.matrix(acp_sect$co^2), cluster_cols=F,color = rev (hcl.colors(50, "Greens")))
 ```
 
+Au niveau du cercle de corrélation, il est possible de voir que la magnitude et le volume contribuent à la dimension 1 tandis que la profondeur contribue plus à la dimension 2. 
 
+Les flèches sont proches du bord du  cercle, ce qui veut dire que ces variables sont bien représentées dans ce plan. 
+
+La magnitude et le volume sont positivement corrélés. A l'inverse la profondeur et le volume sont orthogonaux donc il n'y a aucune corrélation entre ces deux variables. 
 ```{r}
 fviz_pca_var(acp_sect, col.var = "cos2", gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),labelsize = 3)
 ```
-
+A partir de ce grapique, il est possible de voir que la plupart des volcans sont regroupés dans la partie droite du graphique. 
 
 ```{r}
 fviz_pca_biplot(acp_sect,
@@ -1140,8 +1276,6 @@ s3 <- summary(model2)
 
 
 L’AIC (Akaike Information Criterion) est une mesure qui permet de déterminer quel modèle statistique explique le plus le modèle. Il faut que l’AIC soit la plus faible possible. Le plus grand point fort de l’AIC, c’est qu’elle pénalise les modèles qui sont trop complexes et qui donc ne peuvent pas s’appliquer sur des données invisibles. 
-
-
 
 Dans cette étude, c'est le deuxième qui est le meilleur car il a l'AIC la plus faible. Cela voudrait dire que la magnitude et le volume sont des bons prédicteurs pour le type de magma.
 
